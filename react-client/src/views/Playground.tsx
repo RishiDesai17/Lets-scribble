@@ -1,4 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
+import useStore from '../zustand/store';
 import './styles/Playground.css';
 
 type Coordinates = {
@@ -16,16 +17,27 @@ const Playground: React.FC = (props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const context = useRef<CanvasRenderingContext2D | null>()
     const isDrawing = useRef<boolean>(false)
-    const position = useRef<Coordinates>()
+    const position = useRef<Coordinates>({ x: 0, y: 0 })
+
+    const { getSocket } = useStore(useCallback(state => ({
+        getSocket: state.getSocket
+    }), []))
 
     useEffect(() => {
+        init()
+    }, [])
+
+    const init = () => {
         if(!canvasRef.current){
             return
         }
+        getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates }: { newCoordinates: Coordinates, currentCoordinates: Coordinates }) => {
+            draw(newCoordinates, currentCoordinates)
+        })
         const canvas: HTMLCanvasElement = canvasRef.current;
         context.current = canvas.getContext('2d')
         attachEventListeners()
-    }, [])
+    }
 
     const attachEventListeners = (): void => {
         const canvas = canvasRef.current
@@ -41,11 +53,11 @@ const Playground: React.FC = (props) => {
         canvas?.addEventListener('touchcancel', onMouseUp)
     }
 
-    const onMouseDown = (e: MouseEvent | TouchEvent): void => {
+    const onMouseDown = useCallback((e: MouseEvent | TouchEvent): void => {
         console.log("mousedown")
         isDrawing.current = true
         handleEventType({ e, toDraw: false, setPosition: true })
-    }
+    }, [])
 
     const onMouseMove = (e: MouseEvent | TouchEvent): void => {
         if(isDrawing.current){
@@ -86,21 +98,29 @@ const Playground: React.FC = (props) => {
                 x: coordinates.x,
                 y: coordinates.y
             })
+            getSocket().emit("drawing", { newCoordinates: coordinates, currentCoordinates: {
+                x: position.current?.x,
+                y: position.current?.y
+            }})
         }
         if(setPosition){
             position.current = coordinates
         }
     }
 
-    const draw = ({ x: newX, y: newY }: Coordinates): void => {
+    const draw = ({ x: newX, y: newY }: Coordinates, currentCoordinates?: Coordinates): void => {
         const currentContext = context.current
-        if(!currentContext || !position.current){
+        if(!currentContext){
             return
         }
-        
         currentContext.beginPath();
         
-        currentContext.moveTo(position.current.x, position.current.y);
+        if(currentCoordinates){
+            currentContext.moveTo(currentCoordinates.x, currentCoordinates.y);
+        }
+        else{
+            currentContext.moveTo(position.current.x, position.current.y);
+        }
         currentContext.lineTo(newX, newY);
         
         currentContext.closePath();
