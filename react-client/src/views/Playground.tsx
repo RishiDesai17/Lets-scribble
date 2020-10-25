@@ -18,6 +18,7 @@ const Playground: React.FC = (props) => {
     const context = useRef<CanvasRenderingContext2D | null>()
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
+    const previousStrokeSent = useRef<number>(new Date().getTime())
 
     const { getSocket } = useStore(useCallback(state => ({
         getSocket: state.getSocket
@@ -98,10 +99,14 @@ const Playground: React.FC = (props) => {
                 x: coordinates.x,
                 y: coordinates.y
             })
-            getSocket().emit("drawing", { newCoordinates: coordinates, currentCoordinates: {
-                x: position.current?.x,
-                y: position.current?.y
-            }})
+            const now = new Date().getTime()
+            if(now - previousStrokeSent.current > 12){
+                getSocket().emit("drawing", { newCoordinates: coordinates, currentCoordinates: {
+                    x: position.current?.x,
+                    y: position.current?.y
+                }})
+            }
+            previousStrokeSent.current = now
         }
         if(setPosition){
             position.current = coordinates
