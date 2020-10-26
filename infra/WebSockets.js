@@ -1,6 +1,8 @@
 const http = require("http")
 const socket = require("socket.io")
+const uuid = require("uuid")
 const { createRoom } = require("../utils/room")
+const { startGame } = require("../utils/game")
 
 const webSocketsInit = app => {
     const server = http.Server(app)
@@ -12,14 +14,38 @@ const webSocketsInit = app => {
         socket.on("create room", async() => {
             const response = await createRoom(socket.id)
             if(response.success){
-                socket.join(response.roomID)
-                socket.emit("roomID", response.roomID)
+                const roomID = response.roomID
+                socket.join(roomID)
+                socket.roomID = roomID
+                socket.emit("roomID", roomID)
             }
+        })
+
+        socket.on("join room", roomID => {
+            if(!uuid.validate(roomID)){
+                socket.emit("invalid room")
+                return;
+            }
+            const roomData = io.sockets.adapter.rooms[roomID]
+            console.log(roomData.sockets)
+            if(!roomData){
+                socket.emit("invalid room")
+                return;
+            }
+            socket.emit("users in this room", Object.keys(roomData.sockets))
+            socket.join(roomID)
+            socket.roomID = roomID
+            socket.broadcast.to(roomID).emit("new member", socket.id)
+        })
+
+        socket.on("start game", () => {
+            console.log(socket.roomID)
+            startGame(socket)
         })
 
         socket.on("drawing", data => {
             console.log(data)
-            socket.broadcast.emit("receiveStrokes", data)
+            socket.broadcast.to(socket.roomID).emit("receiveStrokes", data)
         })
     })
 

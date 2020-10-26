@@ -1,10 +1,14 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
 
-exports.createRoom = async socketID =>  {
+exports.createRoom = async socketID => {
     try{
         const roomID = uuid.v4()
-        await redis.set(roomID, socketID) // key: roomID value: host
+        const body = {
+            host: socketID,
+            gameStarted: false
+        }
+        await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game started or waiting in lobby
         return { 
             success: true, 
             roomID 
@@ -17,4 +21,8 @@ exports.createRoom = async socketID =>  {
             message: "Something went wrong, please try again later" 
         }
     }
+}
+
+exports.joinRoom = () => {
+
 }
