@@ -13,9 +13,13 @@ type HandleEventTypeProps = {
     setPosition: boolean
 }
 
+type ReceiveStrokesProps = {
+    newCoordinates: Coordinates,
+    currentCoordinates: Coordinates
+}
+
 const Playground: React.FC = (props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const context = useRef<CanvasRenderingContext2D | null>()
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
     const previousStrokeSent = useRef<number>(new Date().getTime())
@@ -32,11 +36,9 @@ const Playground: React.FC = (props) => {
         if(!canvasRef.current){
             return
         }
-        getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates }: { newCoordinates: Coordinates, currentCoordinates: Coordinates }) => {
+        getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates }: ReceiveStrokesProps) => {
             draw(newCoordinates, currentCoordinates)
         })
-        const canvas: HTMLCanvasElement = canvasRef.current;
-        context.current = canvas.getContext('2d')
         attachEventListeners()
     }
 
@@ -114,7 +116,7 @@ const Playground: React.FC = (props) => {
     }
 
     const draw = ({ x: newX, y: newY }: Coordinates, currentCoordinates?: Coordinates): void => {
-        const currentContext = context.current
+        const currentContext = canvasRef.current?.getContext('2d')
         if(!currentContext){
             return
         }

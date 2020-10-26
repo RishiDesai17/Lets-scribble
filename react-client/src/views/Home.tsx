@@ -4,16 +4,21 @@ import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
 
 const Home: React.FC = (props) => {
-    const { setSocket } = useStore(useCallback(state => ({
-        setSocket: state.setSocket
+    const { setSocket, setRoom } = useStore(useCallback(state => ({
+        setSocket: state.setSocket,
+        setRoom: state.setRoom
     }), []))
 
     const history = useHistory();
 
     const createRoom = () => {
-        const userSocket = io("/")
-        setSocket(userSocket)
-        history.replace("/playground")
+        const socket = io("/")
+        setSocket(socket)
+        socket.on("roomID", (roomID: string) => {
+            setRoom(roomID)
+            history.replace(`/lobby/${roomID}`)
+        })
+        socket.emit("create room")
     }
 
     return (

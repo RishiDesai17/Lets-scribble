@@ -2,9 +2,7 @@ const express = require("express")
 const app = express()
 const webSocketsInit = require('./infra/WebSockets')
 
-const roomRoutes = require('./routes/room');
-
-app.use('/api/room', roomRoutes)
+app.use(express.json())
 
 const port = 3001
 
