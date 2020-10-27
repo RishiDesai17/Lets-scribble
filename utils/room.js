@@ -8,7 +8,7 @@ exports.createRoom = async socketID => {
             host: socketID,
             gameStarted: false
         }
-        await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game started or waiting in lobby
+        await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
         return { 
             success: true, 
             roomID 
@@ -23,6 +23,28 @@ exports.createRoom = async socketID => {
     }
 }
 
-exports.joinRoom = () => {
-
+exports.joinRoom = async(io, socket, roomID) => {
+    try{
+        if(!uuid.validate(roomID)){
+            socket.emit("invalid room")
+            return;
+        }
+        const roomData = io.sockets.adapter.rooms[roomID]
+        console.log(roomData.sockets)
+        if(!roomData){
+            socket.emit("invalid room")
+            return;
+        }
+        socket.emit("users in this room", Object.keys(roomData.sockets))
+        socket.join(roomID)
+        socket.roomID = roomID
+        socket.broadcast.to(roomID).emit("new member", socket.id)
+        const { gameStarted } = JSON.parse(await redis.get(roomID))
+        if(gameStarted){
+            socket.emit("game started")
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
 }

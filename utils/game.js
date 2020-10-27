@@ -5,7 +5,7 @@ exports.startGame = async(socket) => {
         const roomID = socket.roomID
         let roomData = JSON.parse(await redis.get(roomID))
         roomData.startGame = true
-        await redis.set(roomID, roomData)
+        await redis.set(roomID, JSON.stringify(roomData))
         socket.broadcast.to(roomID).emit("game started")
     }
     catch(err){

@@ -8,13 +8,13 @@ type RouteParams = {
 }
 
 const Lobby: React.FC = (props) => {
-    const [members, setMembers] = useState<Array<string>>([])
-
-    const { setSocket, setRoom, getRoom, getSocket } = useStore(useCallback(state => ({
+    const { setSocket, setRoom, setMembers, getRoom, getSocket, members } = useStore(useCallback(state => ({
         setSocket: state.setSocket,
         setRoom: state.setRoom,
+        setMembers: state.setMembers,
         getSocket: state.getSocket,
-        getRoom: state.getRoom
+        getRoom: state.getRoom,
+        members: state.members
     }), []))
 
     const history = useHistory()
@@ -34,7 +34,7 @@ const Lobby: React.FC = (props) => {
             })
         }
         getSocket().on("new member", (socketID: string) => {
-            setMembers(members => [...members, socketID])
+            setMembers([...members, socketID])
         })
     }, [])
 
