@@ -8,14 +8,17 @@ type RouteParams = {
 }
 
 const Lobby: React.FC = (props) => {
-    const { setSocket, setRoom, setMembers, getRoom, getSocket, members } = useStore(useCallback(state => ({
+    const { setSocket, setRoom, setMembers, addMember, getSocket, getIsHost, getRoom } = useStore(useCallback(state => ({
         setSocket: state.setSocket,
         setRoom: state.setRoom,
         setMembers: state.setMembers,
+        addMember: state.addMember,
+
         getSocket: state.getSocket,
+        getIsHost: state.getIsHost,
         getRoom: state.getRoom,
-        members: state.members
     }), []))
+    const members = useStore(state => state.members)
 
     const history = useHistory()
     const { room } = useParams<RouteParams>()
@@ -25,8 +28,8 @@ const Lobby: React.FC = (props) => {
             setRoom(room)
             const socket = io("/")
             setSocket(socket)
-            socket.on("users in this room", (members: string[]) => {
-                setMembers(members)
+            socket.on("members in this room", (membersInThisRoom: string[]) => {
+                setMembers(membersInThisRoom)
             })
             socket.emit("join room", room)
             socket.on("game started", () => {
@@ -34,7 +37,7 @@ const Lobby: React.FC = (props) => {
             })
         }
         getSocket().on("new member", (socketID: string) => {
-            setMembers([...members, socketID])
+            addMember(socketID)
         })
     }, [])
 
@@ -48,7 +51,7 @@ const Lobby: React.FC = (props) => {
             <h1>Lobby</h1>
             <h4>{getRoom()}</h4>
             <p>{JSON.stringify(members)}</p>
-            <button onClick={startGame}>Start game</button>
+            <button onClick={startGame} disabled={!(getIsHost() && members.length > 1)}>Start game</button>
         </>
     )
 }

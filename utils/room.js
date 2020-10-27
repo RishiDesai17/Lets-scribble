@@ -35,9 +35,9 @@ exports.joinRoom = async(io, socket, roomID) => {
             socket.emit("invalid room")
             return;
         }
-        socket.emit("users in this room", Object.keys(roomData.sockets))
         socket.join(roomID)
         socket.roomID = roomID
+        socket.emit("members in this room", Object.keys(io.sockets.adapter.rooms[roomID].sockets))
         socket.broadcast.to(roomID).emit("new member", socket.id)
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){

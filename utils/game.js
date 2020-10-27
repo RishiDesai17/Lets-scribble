@@ -4,9 +4,11 @@ exports.startGame = async(socket) => {
     try{
         const roomID = socket.roomID
         let roomData = JSON.parse(await redis.get(roomID))
-        roomData.startGame = true
-        await redis.set(roomID, JSON.stringify(roomData))
-        socket.broadcast.to(roomID).emit("game started")
+        if(socket.id === roomData.host){
+            roomData.startGame = true
+            await redis.set(roomID, JSON.stringify(roomData))
+            socket.broadcast.to(roomID).emit("game started")
+        }
     }
     catch(err){
         console.log(err)

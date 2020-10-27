@@ -26,7 +26,6 @@ const webSocketsInit = app => {
         })
 
         socket.on("start game", () => {
-            console.log(socket.roomID)
             startGame(socket)
         })
 
