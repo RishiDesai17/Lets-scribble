@@ -1,7 +1,7 @@
 const http = require("http")
 const socket = require("socket.io")
 const uuid = require("uuid")
-const { createRoom, joinRoom } = require("../utils/room")
+const { createRoom, joinRoom, disconnect } = require("../utils/room")
 const { startGame } = require("../utils/game")
 
 const webSocketsInit = app => {
@@ -32,6 +32,11 @@ const webSocketsInit = app => {
         socket.on("drawing", data => {
             console.log(data)
             socket.broadcast.to(socket.roomID).emit("receiveStrokes", data)
+        })
+
+        socket.on("disconnect", () => {
+            console.log(socket.id + "left")
+            disconnect(io, socket)
         })
     })
 

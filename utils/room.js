@@ -48,3 +48,35 @@ exports.joinRoom = async(io, socket, roomID) => {
         console.log(err)
     }
 }
+
+exports.disconnect = async(io, socket) => {
+    try{
+        const roomID = socket.roomID
+        socket.broadcast.to(roomID).emit("member left")
+        let roomData = JSON.parse(await redis.get(roomID))
+        let members;
+        const roomDetails = io.sockets.adapter.rooms[roomID]
+        if(roomDetails){
+            members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
+        }
+        else{ return }
+        if(roomData.host === socket.id){
+            // console.log("new host")
+            newHost = members[0]
+            roomData.host = newHost
+            socket.broadcast.to(newHost).emit("new host")
+        }
+        if(roomData.gameStarted && members.length === 1){
+            // console.log("game over")
+            socket.broadcast.to(roomID).emit("game over")
+            await redis.del(roomID)
+        }
+        else{
+            await redis.set(roomID, JSON.stringify(roomData))
+        }
+        // console.log(await redis.keys('*'))
+    }
+    catch(err){
+        console.log(err)
+    }
+}
