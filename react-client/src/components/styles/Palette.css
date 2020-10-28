@@ -1,0 +1,11 @@
+#paletteContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.color{
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+}

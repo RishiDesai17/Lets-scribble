@@ -1,9 +1,11 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import useStore from '../zustand/store';
 import SketchBoard from '../components/SketchBoard';
 import { useHistory } from 'react-router-dom';
+import Palette from '../components/Palette';
 
 const Playground: React.FC = (props) => {
+    const color = useRef<string>("")
     const history = useHistory()
 
     const { getRoom } = useStore(useCallback(state => ({
@@ -21,10 +23,19 @@ const Playground: React.FC = (props) => {
         }
     }
 
+    const setColor = (selectedColor: string) => {
+        color.current = selectedColor
+    }
+
+    const getColor = () => {
+        return color.current
+    }
+
     return (
         <>
             <h1>Playground</h1>
-            <SketchBoard />
+            <SketchBoard getColor={getColor} />
+            <Palette setColorInParent={setColor} />
         </>
     )
 }

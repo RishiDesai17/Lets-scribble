@@ -3,22 +3,27 @@ import useStore from '../zustand/store';
 import './styles/SketchBoard.css';
 
 type Coordinates = {
-    x: number,
+    x: number
     y: number
 }
 
 type HandleEventTypeProps = {
-    e: MouseEvent | TouchEvent,
-    toDraw: boolean,
+    e: MouseEvent | TouchEvent
+    toDraw: boolean
     setPosition: boolean
 }
 
 type ReceiveStrokesProps = {
-    newCoordinates: Coordinates,
+    newCoordinates: Coordinates
     currentCoordinates: Coordinates
+    color: string
 }
 
-const Sketchboard: React.FC = (props) => {
+type Props = {
+    getColor: () => string
+}
+
+const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
@@ -36,8 +41,8 @@ const Sketchboard: React.FC = (props) => {
         if(!canvasRef.current){
             return
         }
-        getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates }: ReceiveStrokesProps) => {
-            draw(newCoordinates, currentCoordinates)
+        getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates, color }: ReceiveStrokesProps) => {
+            draw(newCoordinates, color, currentCoordinates)
         })
         attachEventListeners()
     }
@@ -97,16 +102,21 @@ const Sketchboard: React.FC = (props) => {
             console.log(coordinates)
         }
         if(toDraw){
+            const color = getColor()
             draw({
                 x: coordinates.x,
                 y: coordinates.y
-            })
+            }, color)
             const now = new Date().getTime()
             if(now - previousStrokeSent.current > 12){
-                getSocket().emit("drawing", { newCoordinates: coordinates, currentCoordinates: {
-                    x: position.current?.x,
-                    y: position.current?.y
-                }})
+                getSocket().emit("drawing", { 
+                    newCoordinates: coordinates, 
+                    currentCoordinates: {
+                        x: position.current?.x,
+                        y: position.current?.y
+                    },
+                    color
+                })
             }
             previousStrokeSent.current = now
         }
@@ -115,13 +125,13 @@ const Sketchboard: React.FC = (props) => {
         }
     }
 
-    const draw = ({ x: newX, y: newY }: Coordinates, currentCoordinates?: Coordinates): void => {
+    const draw = ({ x: newX, y: newY }: Coordinates, color: string, currentCoordinates?: Coordinates): void => {
         const currentContext = canvasRef.current?.getContext('2d')
         if(!currentContext){
             return
         }
         currentContext.lineWidth = 2
-        currentContext.strokeStyle = '#ccc'
+        currentContext.strokeStyle = color
         currentContext.beginPath();
         
         if(currentCoordinates){
