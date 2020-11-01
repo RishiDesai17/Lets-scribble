@@ -8,7 +8,7 @@ type RouteParams = {
 }
 
 const Lobby: React.FC = (props) => {
-    const { isHost, setSocket, setRoom, setMembers, addMember, setIsHost, getSocket, getRoom } = useStore(useCallback(state => ({
+    const { isHost, setSocket, setRoom, setMembers, addMember, setIsHost, reset, getSocket, getRoom } = useStore(useCallback(state => ({
         isHost: state.isHost,
         
         setSocket: state.setSocket,
@@ -16,6 +16,7 @@ const Lobby: React.FC = (props) => {
         setMembers: state.setMembers,
         addMember: state.addMember,
         setIsHost: state.setIsHost,
+        reset: state.reset,
 
         getSocket: state.getSocket,
         getRoom: state.getRoom
@@ -28,22 +29,31 @@ const Lobby: React.FC = (props) => {
     useEffect(() => {
         if(getRoom() === ""){
             setRoom(room)
+            
             const socket = io("/")
             setSocket(socket)
+            
             socket.on("members in this room", (membersInThisRoom: string[]) => {
                 setMembers(membersInThisRoom)
             })
+
             socket.emit("join room", room)
+
             socket.on("game started", () => {
                 history.replace("/playground")
             })
+            
             socket.on("new host", () => {
                 setIsHost(true)
             })
-            socket.on("game over", () => {
-                // TBD
-            })
         }
+
+        getSocket().on("game over", () => {
+            alert("game over")
+            reset()
+            history.replace("/")
+        })
+
         getSocket().on("new member", (socketID: string) => {
             addMember(socketID)
         })
