@@ -12,13 +12,7 @@ const webSocketsInit = app => {
         console.log("New connection: " + socket.id)
 
         socket.on("create room", async() => {
-            const response = await createRoom(socket.id)
-            if(response.success){
-                const roomID = response.roomID
-                socket.join(roomID)
-                socket.roomID = roomID
-                socket.emit("roomID", roomID)
-            }
+            createRoom(socket)
         })
 
         socket.on("join room", roomID => {

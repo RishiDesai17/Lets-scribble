@@ -8,13 +8,14 @@ type RouteParams = {
 }
 
 const Lobby: React.FC = (props) => {
-    const { isHost, setSocket, setRoom, setMembers, addMember, setIsHost, reset, getSocket, getRoom } = useStore(useCallback(state => ({
+    const { isHost, setSocket, setRoom, setMembers, addMember, removeMember, setIsHost, reset, getSocket, getRoom } = useStore(useCallback(state => ({
         isHost: state.isHost,
         
         setSocket: state.setSocket,
         setRoom: state.setRoom,
         setMembers: state.setMembers,
         addMember: state.addMember,
+        removeMember: state.removeMember,
         setIsHost: state.setIsHost,
         reset: state.reset,
 
@@ -50,12 +51,17 @@ const Lobby: React.FC = (props) => {
 
         getSocket().on("game over", () => {
             alert("game over")
+            getSocket().disconnect()
             reset()
             history.replace("/")
         })
 
         getSocket().on("new member", (socketID: string) => {
             addMember(socketID)
+        })
+
+        getSocket().on("someone left", (socketID: string) => {
+            removeMember(socketID)
         })
     }, [])
 

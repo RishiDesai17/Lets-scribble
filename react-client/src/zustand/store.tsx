@@ -10,8 +10,10 @@ type State = {
     setSocket: (socket: SocketIOClient.Socket) => void
     setRoom: (room: string) => void
     setMembers: (members: string[]) => void
-    addMember: (member: string) => void
+    addMember: (newMember: string) => void
+    removeMember: (exMember: string) => void
     setIsHost: (isHost: boolean) => void
+    reset: () => void
 
     getSocket: () => SocketIOClient.Socket
     getRoom: () => string
@@ -31,8 +33,14 @@ const useStore = create<State>((set, get) => ({
     setSocket: (socket: SocketIOClient.Socket) => set({ socket }),
     setRoom: (room: string) => set({ room }),
     setMembers: (members: string[]) => set({ members }),
-    addMember: (member: string) => set(state => ({ members: [...state.members, member] })),
+    addMember: (newMember: string) => set(state => ({ members: [...state.members, newMember] })),
+    removeMember: (exMember: string) => set(state => {
+        let members = state.members
+        members = members.filter(member => member !== exMember)
+        return { members }
+    }),
     setIsHost: (isHost: boolean) => set({ isHost }),
+    reset: () => set({ ...INIT_STATE }),
     
     getSocket: () => get().socket,
     getRoom: () => get().room,

@@ -1,25 +1,24 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
 
-exports.createRoom = async socketID => {
+exports.createRoom = async socket => {
     try{
         const roomID = uuid.v4()
         const body = {
-            host: socketID,
+            host: socket.id,
             gameStarted: false
         }
         await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
-        return { 
-            success: true, 
-            roomID 
-        }
+        socket.join(roomID)
+        socket.roomID = roomID
+        socket.emit("roomID", roomID)
     }
     catch(err){
         console.log(err)
-        return { 
-            success: false, 
-            message: "Something went wrong, please try again later" 
-        }
+        // return { 
+        //     success: false, 
+        //     message: "Something went wrong, please try again later" 
+        // }
     }
 }
 
@@ -29,9 +28,8 @@ exports.joinRoom = async(io, socket, roomID) => {
             socket.emit("invalid room")
             return;
         }
-        const roomData = io.sockets.adapter.rooms[roomID]
-        console.log(roomData.sockets)
-        if(!roomData){
+        const room = await redis.get(roomID)
+        if(room === null){
             socket.emit("invalid room")
             return;
         }
@@ -65,6 +63,7 @@ exports.disconnect = async(io, socket) => {
             newHost = members[0]
             roomData.host = newHost
             socket.broadcast.to(newHost).emit("new host")
+            await redis.set(roomID, JSON.stringify(roomData))
         }
         if(roomData.gameStarted && members.length === 1){
             // console.log("game over")
@@ -72,7 +71,7 @@ exports.disconnect = async(io, socket) => {
             await redis.del(roomID)
         }
         else{
-            await redis.set(roomID, JSON.stringify(roomData))
+            socket.broadcast.to(roomID).emit("someone left", socket.id)
         }
         // console.log(await redis.keys('*'))
     }
