@@ -47,6 +47,11 @@ const Lobby: React.FC = (props) => {
             socket.on("new host", () => {
                 setIsHost(true)
             })
+
+            socket.on("invalid room", () => {
+                alert("Invalid room")
+                history.replace("/")
+            })
         }
 
         getSocket().on("game over", () => {
