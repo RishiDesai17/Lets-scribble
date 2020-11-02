@@ -7,12 +7,18 @@ type RouteParams = {
     room: string
 }
 
+type Member = {
+    socketID: string
+    name: string
+}
+
 const Lobby: React.FC = (props) => {
-    const { isHost, setSocket, setRoom, setMembers, addMember, removeMember, setIsHost, reset, getSocket, getRoom } = useStore(useCallback(state => ({
+    const { isHost, setSocket, setRoom, setName, setMembers, addMember, removeMember, setIsHost, reset, getSocket, getRoom, getName } = useStore(useCallback(state => ({
         isHost: state.isHost,
         
         setSocket: state.setSocket,
         setRoom: state.setRoom,
+        setName: state.setName,
         setMembers: state.setMembers,
         addMember: state.addMember,
         removeMember: state.removeMember,
@@ -20,7 +26,8 @@ const Lobby: React.FC = (props) => {
         reset: state.reset,
 
         getSocket: state.getSocket,
-        getRoom: state.getRoom
+        getRoom: state.getRoom,
+        getName: state.getName
     }), []))
     const members = useStore(state => state.members)
 
@@ -31,14 +38,22 @@ const Lobby: React.FC = (props) => {
         if(getRoom() === ""){
             setRoom(room)
             
+            if(getName() === ""){
+                let name = null
+                while(name === null){
+                    name = prompt("Please enter your name")
+                }
+                setName(name)
+            }
+
             const socket = io("/")
             setSocket(socket)
             
-            socket.on("members in this room", (membersInThisRoom: string[]) => {
+            socket.on("members in this room", (membersInThisRoom: Member[]) => {
                 setMembers(membersInThisRoom)
             })
 
-            socket.emit("join room", room)
+            socket.emit("join room", { room, name: getName() })
 
             socket.on("game started", () => {
                 history.replace("/playground")
@@ -61,12 +76,12 @@ const Lobby: React.FC = (props) => {
             history.replace("/")
         })
 
-        getSocket().on("new member", (socketID: string) => {
-            addMember(socketID)
+        getSocket().on("new member", (member: Member) => {
+            addMember(member)
         })
 
-        getSocket().on("someone left", (socketID: string) => {
-            removeMember(socketID)
+        getSocket().on("someone left", (member: string) => {
+            removeMember(member)
         })
     }, [])
 

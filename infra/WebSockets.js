@@ -11,12 +11,12 @@ const webSocketsInit = app => {
     io.on("connection", socket => {
         console.log("New connection: " + socket.id)
 
-        socket.on("create room", async() => {
-            createRoom(socket)
+        socket.on("create room", async(name) => {
+            createRoom(socket, name)
         })
 
-        socket.on("join room", roomID => {
-            joinRoom(io, socket, roomID)
+        socket.on("join room", ({ room, name }) => {
+            joinRoom(io, socket, room, name)
         })
 
         socket.on("start game", () => {

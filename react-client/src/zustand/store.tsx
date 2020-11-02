@@ -4,25 +4,34 @@ import io from 'socket.io-client';
 type State = {
     socket: SocketIOClient.Socket
     room: string
+    name: string
     isHost: boolean
-    members: string[]
+    members: Member[]
 
     setSocket: (socket: SocketIOClient.Socket) => void
     setRoom: (room: string) => void
-    setMembers: (members: string[]) => void
-    addMember: (newMember: string) => void
+    setName: (name: string) => void
+    setMembers: (members: Member[]) => void
+    addMember: (newMember: Member) => void
     removeMember: (exMember: string) => void
     setIsHost: (isHost: boolean) => void
     reset: () => void
 
     getSocket: () => SocketIOClient.Socket
     getRoom: () => string
+    getName: () => string
     getIsHost: () => boolean
+}
+
+type Member = {
+    socketID: string
+    name: string
 }
 
 const INIT_STATE = {
     socket: io.Socket,
     room: "",
+    name: "",
     isHost: false,
     members: []
 }
@@ -32,11 +41,13 @@ const useStore = create<State>((set, get) => ({
 
     setSocket: (socket: SocketIOClient.Socket) => set({ socket }),
     setRoom: (room: string) => set({ room }),
-    setMembers: (members: string[]) => set({ members }),
-    addMember: (newMember: string) => set(state => ({ members: [...state.members, newMember] })),
+    setName: (name: string) => set({ name }),
+    setMembers: (members: Member[]) => set({ members }),
+    addMember: (newMember: Member) => set(state => ({ members: [...state.members, newMember] })),
     removeMember: (exMember: string) => set(state => {
         let members = state.members
-        members = members.filter(member => member !== exMember)
+        console.log(exMember, members)
+        members = members.filter(member => member.socketID !== exMember)
         return { members }
     }),
     setIsHost: (isHost: boolean) => set({ isHost }),
@@ -44,6 +55,7 @@ const useStore = create<State>((set, get) => ({
     
     getSocket: () => get().socket,
     getRoom: () => get().room,
+    getName: () => get().name,
     getIsHost: () => get().isHost
 }))
 

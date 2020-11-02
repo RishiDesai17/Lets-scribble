@@ -1,7 +1,7 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
 
-exports.createRoom = async socket => {
+exports.createRoom = async (socket, name) => {
     try{
         const roomID = uuid.v4()
         const body = {
@@ -9,8 +9,9 @@ exports.createRoom = async socket => {
             gameStarted: false
         }
         await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
-        socket.join(roomID)
         socket.roomID = roomID
+        socket.name = name
+        socket.join(roomID)
         socket.emit("roomID", roomID)
     }
     catch(err){
@@ -22,7 +23,7 @@ exports.createRoom = async socket => {
     }
 }
 
-exports.joinRoom = async(io, socket, roomID) => {
+exports.joinRoom = async(io, socket, roomID, name) => {
     try{
         if(!uuid.validate(roomID)){
             socket.emit("invalid room")
@@ -35,8 +36,19 @@ exports.joinRoom = async(io, socket, roomID) => {
         }
         socket.join(roomID)
         socket.roomID = roomID
-        socket.emit("members in this room", Object.keys(io.sockets.adapter.rooms[roomID].sockets))
-        socket.broadcast.to(roomID).emit("new member", socket.id)
+        socket.name = name
+        let usersInThisRoom = []
+        for(let key in io.sockets.adapter.rooms[roomID].sockets){
+            // console.log(io.sockets.connected[key].userName)
+            // console.log(key.userName)
+            usersInThisRoom.push({
+                socketID: key,
+                name: io.sockets.connected[key].name
+            })
+        }
+        console.log(usersInThisRoom)
+        socket.emit("members in this room", usersInThisRoom)
+        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, name })
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
             socket.emit("game started")
