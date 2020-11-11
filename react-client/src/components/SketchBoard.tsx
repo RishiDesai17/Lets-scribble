@@ -178,10 +178,11 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
 
     const chooseWord = (choice: string) => {
         const socket = getSocket()
-        getSocket().emit("chosen word", choice)
+        socket.emit("chosen word", choice)
         setTimeout(() => {
             socket.emit("next turn")
         }, 5 * 1000)
+        setOpen(false)
     }
 
     return (
