@@ -6,6 +6,7 @@ type State = {
     room: string
     name: string
     isHost: boolean
+    turn: boolean
     members: Member[]
 
     setSocket: (socket: SocketIOClient.Socket) => void
@@ -15,6 +16,7 @@ type State = {
     addMember: (newMember: Member) => void
     removeMember: (exMember: string) => void
     setIsHost: (isHost: boolean) => void
+    setTurn: (turn: boolean) => void
     reset: () => void
 
     getSocket: () => SocketIOClient.Socket
@@ -33,6 +35,7 @@ const INIT_STATE = {
     room: "",
     name: "",
     isHost: false,
+    turn: false,
     members: []
 }
 
@@ -51,6 +54,7 @@ const useStore = create<State>((set, get) => ({
         return { members }
     }),
     setIsHost: (isHost: boolean) => set({ isHost }),
+    setTurn: (turn: boolean) => set({ turn }),
     reset: () => set({ ...INIT_STATE }),
     
     getSocket: () => get().socket,

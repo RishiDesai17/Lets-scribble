@@ -1,5 +1,9 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import useStore from '../zustand/store';
+import { makeStyles } from "@material-ui/core/styles";
+import Modal from "@material-ui/core/Modal";
+import Backdrop from "@material-ui/core/Backdrop";
+import Fade from "@material-ui/core/Fade";
 import './styles/SketchBoard.css';
 
 type Coordinates = {
@@ -23,11 +27,30 @@ type Props = {
     getColor: () => string
 }
 
+const useStyles = makeStyles((theme) => ({
+    modal: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    paper: {
+      backgroundColor: theme.palette.background.paper,
+      border: "2px solid #000",
+      boxShadow: theme.shadows[5],
+      padding: theme.spacing(2, 4, 3)
+    }
+}));
+
 const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
     const previousStrokeSent = useRef<number>(new Date().getTime())
+    const wordChoices = useRef<Array<string>>([])
+
+    const [open, setOpen] = useState<boolean>(false);
+    
+    const classes = useStyles();
 
     const { getSocket } = useStore(useCallback(state => ({
         getSocket: state.getSocket
@@ -43,6 +66,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         }
         getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates, color }: ReceiveStrokesProps) => {
             draw(newCoordinates, color, currentCoordinates)
+        })
+        getSocket().on("turn", (words: string[]) => {
+            wordChoices.current = words
+            setOpen(true)
+        })
+        getSocket().on("start guessing", (word: string) => {
+            alert("start guessin'")
         })
         attachEventListeners()
     }
@@ -146,10 +176,41 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         currentContext.stroke();
     }
 
+    const chooseWord = (choice: string) => {
+        const socket = getSocket()
+        getSocket().emit("chosen word", choice)
+        setTimeout(() => {
+            socket.emit("next turn")
+        }, 5 * 1000)
+    }
+
     return (
-        <>
+        <div id="canvasContainer">
             <canvas height={500} width={500} ref={canvasRef}></canvas>
-        </>
+            <Modal
+                aria-labelledby="transition-modal-title"
+                aria-describedby="transition-modal-description"
+                className={classes.modal}
+                open={open}
+                closeAfterTransition
+                BackdropComponent={Backdrop}
+                BackdropProps={{
+                    timeout: 500
+                }}
+            >
+                <Fade in={open}>
+                    <div className={classes.paper}>
+                        <h2 id="transition-modal-title">Transition modal</h2>
+                        <p id="transition-modal-description">
+                            react-transition-group animates me.
+                        </p>
+                        {wordChoices.current.map(word => (
+                            <button onClick={() => chooseWord(word)}>{word}</button>
+                        ))}
+                    </div>
+                </Fade>
+            </Modal>
+        </div>
     )
 }
 

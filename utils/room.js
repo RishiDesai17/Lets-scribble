@@ -1,5 +1,6 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
+const Game = require('../models/game')
 
 exports.createRoom = async (socket, name) => {
     try{
@@ -11,6 +12,7 @@ exports.createRoom = async (socket, name) => {
         await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
         socket.roomID = roomID
         socket.name = name
+        socket.score = 0
         socket.join(roomID)
         socket.emit("roomID", roomID)
     }
@@ -37,10 +39,10 @@ exports.joinRoom = async(io, socket, roomID, name) => {
         socket.join(roomID)
         socket.roomID = roomID
         socket.name = name
+        socket.score = 0
+        addMemberToDB({ roomID, socketID: socket.id })
         let usersInThisRoom = []
         for(let key in io.sockets.adapter.rooms[roomID].sockets){
-            // console.log(io.sockets.connected[key].userName)
-            // console.log(key.userName)
             usersInThisRoom.push({
                 socketID: key,
                 name: io.sockets.connected[key].name
@@ -55,6 +57,18 @@ exports.joinRoom = async(io, socket, roomID, name) => {
         }
     }
     catch(err){
+        console.log(err)
+    }
+}
+
+const addMemberToDB = async({ roomID, socketID }) => {
+    try {
+        await Game.findByIdAndUpdate(roomID, {
+            $push: {
+                'sockets': socketID
+            }
+        })
+    } catch (err) {
         console.log(err)
     }
 }
