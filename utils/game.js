@@ -46,18 +46,19 @@ exports.startGuessing = async({ socket, word, roomID }) => {
     const { round_length } = await redis.get(roomID + " round")
     await redis.set(roomID + " round", {
         word,
-        time: new Date().getTime(),
+        startTime: new Date(),
         round_length
     })
     socket.broadcast.to(roomID).emit("start guessing", word)
 }
 
 exports.validateWord = async({ io, socket, word }) => {
-    const correctAnswer = await redis.get(roomID + " word")
+    const { word: correctAnswer, startTime, round_length } = await redis.get(roomID + " round")
     let color = "#000"
-    if(correctAnswer && word === correctAnswer) {
-        socket.score += 1
-        socket.played = true
+    if(correctAnswer && !socket.currentScore && word === correctAnswer) {
+        const score = round_length - ((new Date() - startTime) / 1000)
+        socket.score += score
+        socket.currentScore = score
         color = "green"
     }
     io.sockets.in(socket.roomID).emit("guesses", {
@@ -86,14 +87,27 @@ exports.nextTurn = async({ io, roomID }) => {
         else{
             turnIndex += 1
         }
-        turn({ io, socketID: sockets[turnIndex], roomID })
-        for(let key in io.sockets.adapter.rooms[roomID].sockets){
-            io.sockets.connected[key].played = undefined
-        }
+        Promise.all([
+            scoreManagement({ io, roomID }),
+            turn({ io, socketID: sockets[turnIndex], roomID })
+        ])
         await Game.findByIdAndUpdate(roomID, {
             turnIndex
         })
     } catch (err) {
         console.log(err)
     }
+}
+
+const scoreManagement = ({ io, roomID }) => {
+    round_wise_scores = []
+    for(let key in io.sockets.adapter.rooms[roomID].sockets){
+        const socketData = io.sockets.connected[key]
+        round_wise_score.push({
+            score: socketData.currentScore,
+            name: socketData.name
+        })
+        io.sockets.connected[key].currentScore = undefined
+    }
+    io.sockets.in(roomID).emit("round wise scores", round_wise_scores)
 }
