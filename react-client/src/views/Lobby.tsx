@@ -86,7 +86,10 @@ const Lobby: React.FC = (props) => {
     }, [])
 
     const startGame = () => {
-        getSocket().emit("start game")
+        getSocket().emit("start game", {
+            numRounds: 1,
+            round_length: 60
+        })
         history.replace("/playground")
     }
 

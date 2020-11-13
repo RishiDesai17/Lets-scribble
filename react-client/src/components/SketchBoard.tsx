@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, memo } from 'react';
 import useStore from '../zustand/store';
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
@@ -9,6 +9,11 @@ import './styles/SketchBoard.css';
 type Coordinates = {
     x: number
     y: number
+}
+
+type Member = {
+    socketID: string
+    name: string
 }
 
 type HandleEventTypeProps = {
@@ -25,6 +30,8 @@ type ReceiveStrokesProps = {
 
 type Props = {
     getColor: () => string
+    myTurn: boolean
+    setMyTurn: (turn: boolean) => void
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -41,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const Sketchboard: React.FC<Props> = ({ getColor }) => {
+const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
@@ -64,14 +71,19 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         if(!canvasRef.current){
             return
         }
-        getSocket().on("receiveStrokes", ({ newCoordinates, currentCoordinates, color }: ReceiveStrokesProps) => {
+        const socket = getSocket()
+        socket.on("receiveStrokes", ({ newCoordinates, currentCoordinates, color }: ReceiveStrokesProps) => {
             draw(newCoordinates, color, currentCoordinates)
         })
-        getSocket().on("turn", (words: string[]) => {
+        socket.on("turn", (words: string[]) => {
             wordChoices.current = words
+            setMyTurn(true)
             setOpen(true)
         })
-        getSocket().on("start guessing", (word: string) => {
+        socket.on("someone choosing word", (member: Member) => {
+            console.log(member)
+        })
+        socket.on("start guessing", (word: string) => {
             alert("start guessin'")
         })
         attachEventListeners()
@@ -186,8 +198,10 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }
 
     return (
-        <div id="canvasContainer">
-            <canvas height={500} width={500} ref={canvasRef}></canvas>
+        <>
+            <div id="canvasContainer">
+                <canvas height={500} width={500} ref={canvasRef} style={{ pointerEvents: myTurn ? 'none' : 'auto' }}></canvas>
+            </div>
             <Modal
                 aria-labelledby="transition-modal-title"
                 aria-describedby="transition-modal-description"
@@ -211,8 +225,8 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
                     </div>
                 </Fade>
             </Modal>
-        </div>
+        </>
     )
 }
 
-export default Sketchboard
+export default memo(Sketchboard)

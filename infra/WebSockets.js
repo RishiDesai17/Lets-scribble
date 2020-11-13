@@ -2,7 +2,7 @@ const http = require("http")
 const socket = require("socket.io")
 const uuid = require("uuid")
 const { createRoom, joinRoom, disconnect } = require("../utils/room")
-const { startGame, nextTurn, startGuessing } = require("../utils/game")
+const { startGame, nextTurn, startGuessing, validateWord } = require("../utils/game")
 
 const webSocketsInit = app => {
     const server = http.Server(app)
@@ -11,16 +11,16 @@ const webSocketsInit = app => {
     io.on("connection", socket => {
         console.log("New connection: " + socket.id)
 
-        socket.on("create room", async(name) => {
-            createRoom(socket, name)
+        socket.on("create room", async(host_name) => {
+            createRoom(socket, host_name)
         })
 
         socket.on("join room", ({ room, name }) => {
             joinRoom(io, socket, room, name)
         })
 
-        socket.on("start game", () => {
-            startGame(io, socket)
+        socket.on("start game", ({ round_length, numRounds }) => {
+            startGame({ io, socket, round_length, numRounds })
         })
 
         socket.on("drawing", data => {
@@ -34,6 +34,10 @@ const webSocketsInit = app => {
 
         socket.on("chosen word", word => {
             startGuessing({ roomID: socket.roomID, word, socket }) // this word will be sent in hashed format, will do this later
+        })
+
+        socket.on("guess", word => {
+            validateWord({ io, socket, word })
         })
 
         socket.on("disconnect", () => {

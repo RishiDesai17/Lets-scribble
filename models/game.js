@@ -13,6 +13,10 @@ const gameSchema = new mongoose.Schema({
         type: String,
         required: true
     }],
+    numRounds: {
+        type: Number,
+        required: true
+    }
     // scores: [{
     //     type: Number,
     //     required: true

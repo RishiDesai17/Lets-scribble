@@ -2,7 +2,7 @@ const uuid = require('uuid')
 const redis = require('../infra/redis');
 const Game = require('../models/game')
 
-exports.createRoom = async (socket, name) => {
+exports.createRoom = async (socket, host_name) => {
     try{
         const roomID = uuid.v4()
         const body = {
@@ -11,7 +11,7 @@ exports.createRoom = async (socket, name) => {
         }
         await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
         socket.roomID = roomID
-        socket.name = name
+        socket.name = host_name
         socket.score = 0
         socket.join(roomID)
         socket.emit("roomID", roomID)
@@ -94,7 +94,8 @@ exports.disconnect = async(io, socket) => {
         if(roomData.gameStarted && members.length === 1){
             // console.log("game over")
             socket.broadcast.to(roomID).emit("game over")
-            await redis.del(roomID)
+            redis.del(roomID)
+            redis.del(roomID + " round")
         }
         else{
             socket.broadcast.to(roomID).emit("someone left", socket.id)
