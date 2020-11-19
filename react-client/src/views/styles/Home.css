@@ -1,0 +1,22 @@
+#home-background {
+    background-image: url("../../images/lets_scribble_bg.png");
+    width: 100vw;
+    height: 100vh;
+    background-size: 200px 200px;
+    box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.4);
+}
+#main-card {
+    width: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0px 20px 0px rgba(0, 0, 0, 0.6);
+    padding: 40px 0 40px 0;
+}
+@media screen and (max-width: 550px) {
+    #main-card {
+        width: 90%;
+    }
+}

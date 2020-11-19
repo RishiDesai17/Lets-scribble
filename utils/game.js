@@ -103,7 +103,7 @@ const scoreManagement = ({ io, roomID }) => {
     const round_wise_scores = []
     for(let key in io.sockets.adapter.rooms[roomID].sockets){
         const socketData = io.sockets.connected[key]
-        round_wise_score.push({
+        round_wise_scores.push({
             score: socketData.currentScore,
             name: socketData.name
         })

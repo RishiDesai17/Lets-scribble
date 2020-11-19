@@ -2,6 +2,8 @@ import React, { useCallback, useRef } from 'react';
 import useStore from '../zustand/store';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
+import { Card, CardContent, TextField, Button } from '@material-ui/core';
+import "./styles/Home.css";
 
 const Home: React.FC = (props) => {
     const { setSocket, setRoom, setName, setIsHost, setMembers, getName } = useStore(useCallback(state => ({
@@ -16,7 +18,8 @@ const Home: React.FC = (props) => {
 
     const history = useHistory();
 
-    const createRoom = () => {
+    const createRoom = (e: React.FormEvent) => {
+        e.preventDefault()
         if(getName() === ""){
             alert("Please enter a name")
             return
@@ -34,13 +37,23 @@ const Home: React.FC = (props) => {
     }
 
     return (
-        <>
-            <h1>Home</h1>
-            <input onChange={e => {
-                setName(e.target.value)
-            }} />
-            <button onClick={createRoom}>Create Private Room</button>
-        </>
+        <div id="home-background">
+            <Card id="main-card">
+                <CardContent>
+                    <h1 style={{ margin: 0 }}>Hey!</h1>
+                    <form noValidate autoComplete="off" onSubmit={e => createRoom(e)}>
+                        <div style={{ marginTop: 25, marginBottom: 25 }}>
+                            <TextField id="filled-basic" label="Enter Name" variant="filled" onChange={e => {
+                                setName(e.target.value)
+                            }} />
+                        </div>
+                        <Button type="submit" variant="contained" color="primary">
+                            Create Private Room
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
     )
 }
 
