@@ -200,7 +200,7 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     return (
         <>
             <div id="canvasContainer">
-                <canvas height={500} width={500} ref={canvasRef} style={{ pointerEvents: myTurn ? 'none' : 'auto' }}></canvas>
+                <canvas height={500} width={500} ref={canvasRef} style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
             </div>
             <Modal
                 aria-labelledby="transition-modal-title"

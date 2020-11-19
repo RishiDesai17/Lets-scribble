@@ -100,7 +100,7 @@ exports.nextTurn = async({ io, roomID }) => {
 }
 
 const scoreManagement = ({ io, roomID }) => {
-    round_wise_scores = []
+    const round_wise_scores = []
     for(let key in io.sockets.adapter.rooms[roomID].sockets){
         const socketData = io.sockets.connected[key]
         round_wise_score.push({

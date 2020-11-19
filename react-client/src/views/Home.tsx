@@ -23,13 +23,14 @@ const Home: React.FC = (props) => {
         }
         const socket = io("/")
         setSocket(socket)
+        const name = getName()
         socket.on("roomID", (roomID: string) => {
             setRoom(roomID)
             setIsHost(true)
-            setMembers([{ socketID: socket.id, name: getName() }])
+            setMembers([{ socketID: socket.id, name }])
             history.replace(`/lobby/${roomID}`)
         })
-        socket.emit("create room", getName())
+        socket.emit("create room", name)
     }
 
     return (
