@@ -25,32 +25,35 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
     }
     catch(err){
         console.log(err)
+        socket.emit("something broke")
     }
 }
 
 const newGame = async({ _id, members, round_length, numRounds }) => {
-    try {
-        await new Game({
-            _id,
-            turnIndex: 0,
-            sockets: Object.keys(members),
-            numRounds
-        }).save();
-        await redis.set(_id + " round", JSON.stringify({ round_length }))
-    } catch (err) {
-        console.log(err)
-    }
+    await new Game({
+        _id,
+        turnIndex: 0,
+        sockets: Object.keys(members),
+        numRounds
+    }).save();
+    await redis.set(_id + " round", JSON.stringify({ round_length }))
 }
 
 exports.startGuessing = async({ socket, word, roomID }) => {
-    const { round_length } = await redis.get(roomID + " round")
-    await redis.set(roomID + " round", JSON.stringify({
-        word,
-        startTime: new Date(),
-        turn: socket.id,
-        round_length
-    }))
-    socket.broadcast.to(roomID).emit("start guessing")
+    try{
+        const { round_length } = await redis.get(roomID + " round")
+        await redis.set(roomID + " round", JSON.stringify({
+            word,
+            startTime: new Date(),
+            turn: socket.id,
+            round_length
+        }))
+        socket.broadcast.to(roomID).emit("start guessing")
+    }
+    catch(err){
+        console.log(err)
+        socket.emit("something broke")
+    }
 }
 
 exports.validateWord = async({ io, socket, word }) => {
@@ -95,6 +98,7 @@ exports.nextTurn = async({ io, roomID }) => {
         await redis.set(roomID + " round", JSON.stringify(roundData))
     } catch (err) {
         console.log(err)
+        socket.emit("something broke")
     }
 }
 

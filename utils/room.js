@@ -19,10 +19,7 @@ exports.createRoom = async (socket, host_name) => {
     }
     catch(err){
         console.log(err)
-        // return { 
-        //     success: false, 
-        //     message: "Something went wrong, please try again later" 
-        // }
+        socket.emit("something broke")
     }
 }
 
@@ -59,6 +56,7 @@ exports.joinRoom = async(io, socket, roomID, name) => {
     }
     catch(err){
         console.log(err)
+        socket.emit("something broke")
     }
 }
 
@@ -118,5 +116,6 @@ exports.disconnect = async(io, socket) => {
     }
     catch(err){
         console.log(err)
+        socket.emit("something broke")
     }
 }

@@ -69,19 +69,25 @@ const Lobby: React.FC = (props) => {
             })
         }
 
-        getSocket().on("game over", () => {
+        const socket = getSocket()
+
+        socket.on("game over", () => {
             alert("game over")
-            getSocket().disconnect()
+            socket.disconnect()
             reset()
             history.replace("/")
         })
 
-        getSocket().on("new member", (member: Member) => {
+        socket.on("new member", (member: Member) => {
             addMember(member)
         })
 
-        getSocket().on("someone left", (member: string) => {
+        socket.on("someone left", (member: string) => {
             removeMember(member)
+        })
+
+        socket.on("something broke", () => {
+            alert("Something went wrong, please try again later")
         })
     }, [])
 
