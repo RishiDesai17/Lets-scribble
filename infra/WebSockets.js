@@ -33,7 +33,7 @@ const webSocketsInit = app => {
         })
 
         socket.on("chosen word", word => {
-            startGuessing({ roomID: socket.roomID, word, socket }) // this word will be sent in hashed format, will do this later
+            startGuessing({ roomID: socket.roomID, word, socket })
         })
 
         socket.on("guess", word => {

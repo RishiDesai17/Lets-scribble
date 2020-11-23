@@ -38,9 +38,10 @@ const Home: React.FC = (props) => {
 
     return (
         <div id="home-background">
+            <h1 id="title">LETS SCRIBBLE</h1>
             <Card id="main-card">
                 <CardContent>
-                    <h1 style={{ margin: 0 }}>Hey!</h1>
+                    {/* <h1 id="title">Hey!</h1> */}
                     <form noValidate autoComplete="off" onSubmit={e => createRoom(e)}>
                         <div style={{ marginTop: 25, marginBottom: 25 }}>
                             <TextField id="filled-basic" label="Enter Name" variant="filled" onChange={e => {

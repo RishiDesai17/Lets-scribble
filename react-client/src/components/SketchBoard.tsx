@@ -81,9 +81,9 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
             setOpen(true)
         })
         socket.on("someone choosing word", (member: Member) => {
-            console.log(member)
+            console.log(`${member.name} is choosing a word`)
         })
-        socket.on("start guessing", (word: string) => {
+        socket.on("start guessing", () => {
             alert("start guessin'")
         })
         attachEventListeners()

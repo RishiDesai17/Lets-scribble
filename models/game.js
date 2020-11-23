@@ -5,10 +5,6 @@ const gameSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    turnIndex: {
-        type: Number,
-        required: true
-    },
     sockets: [{
         type: String,
         required: true

@@ -1,6 +1,7 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
 const Game = require('../models/game')
+const { nextTurn } = require("./game")
 
 exports.createRoom = async (socket, host_name) => {
     try{
@@ -84,7 +85,8 @@ exports.disconnect = async(io, socket) => {
             members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
         }
         else{ return }
-        if(roomData.host === socket.id){
+        const socketID = socket.id
+        if(roomData.host === socketID){
             // console.log("new host")
             newHost = members[0]
             roomData.host = newHost
@@ -94,11 +96,23 @@ exports.disconnect = async(io, socket) => {
         if(roomData.gameStarted && members.length === 1){
             // console.log("game over")
             socket.broadcast.to(roomID).emit("game over")
-            redis.del(roomID)
-            redis.del(roomID + " round")
+            Promise.all([
+                await redis.del(roomID),
+                await redis.del(roomID + " round"),
+                await Game.findByIdAndDelete(roomID)
+            ])
         }
         else{
-            socket.broadcast.to(roomID).emit("someone left", socket.id)
+            socket.broadcast.to(roomID).emit("someone left", socketID)
+            const { turn } = JSON.parse(await redis.get(roomID + " round"))
+            if(socketID === turn){
+                nextTurn({ io, roomID })
+            }
+            await Game.findByIdAndUpdate(roomID, {
+                $pull: {
+                    'sockets': socketID
+                }
+            })
         }
         // console.log(await redis.keys('*'))
     }

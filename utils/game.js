@@ -36,7 +36,7 @@ const newGame = async({ _id, members, round_length, numRounds }) => {
             sockets: Object.keys(members),
             numRounds
         }).save();
-        await redis.set(roomID + " round", { round_length })
+        await redis.set(_id + " round", JSON.stringify({ round_length }))
     } catch (err) {
         console.log(err)
     }
@@ -44,12 +44,13 @@ const newGame = async({ _id, members, round_length, numRounds }) => {
 
 exports.startGuessing = async({ socket, word, roomID }) => {
     const { round_length } = await redis.get(roomID + " round")
-    await redis.set(roomID + " round", {
+    await redis.set(roomID + " round", JSON.stringify({
         word,
         startTime: new Date(),
+        turn: socket.id,
         round_length
-    })
-    socket.broadcast.to(roomID).emit("start guessing", word)
+    }))
+    socket.broadcast.to(roomID).emit("start guessing")
 }
 
 exports.validateWord = async({ io, socket, word }) => {
@@ -71,29 +72,27 @@ exports.validateWord = async({ io, socket, word }) => {
 const turn = async({ io, socketID, roomID }) => {
     const words = ['cup', 'plate', 'glass']
     io.sockets.in(socketID).emit("turn", words)
-    io.sockets.in(roomID).emit("someone choosing word", `${{
+    io.sockets.in(roomID).emit("someone choosing word", {
         socketID,
         name: io.sockets.connected[socketID].name
-    }} is choosing a word`)
+    })
 }
 
 exports.nextTurn = async({ io, roomID }) => {
     try {
-        const roomData = await Game.findById(roomID).select('sockets turnIndex')
-        let { sockets, turnIndex } = roomData
+        const { sockets } = await Game.findById(roomID).select('sockets')
+        let roundData = JSON.parse(await redis.get(roomID + " round"))
+        let turnIndex = sockets.indexOf(roundData.turn)
         if(turnIndex === sockets.length - 1){
             turnIndex = 0
         }
         else{
             turnIndex += 1
         }
-        Promise.all([
-            scoreManagement({ io, roomID }),
-            turn({ io, socketID: sockets[turnIndex], roomID })
-        ])
-        await Game.findByIdAndUpdate(roomID, {
-            turnIndex
-        })
+        roundData.turn = sockets[turnIndex]
+        scoreManagement({ io, roomID })
+        turn({ io, socketID: sockets[turnIndex], roomID })
+        await redis.set(roomID + " round", JSON.stringify(roundData))
     } catch (err) {
         console.log(err)
     }
