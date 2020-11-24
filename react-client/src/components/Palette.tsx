@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Grid } from '@material-ui/core';
 import { colors } from "../data/data.json";
 import './styles/Palette.css';
 
@@ -8,25 +9,29 @@ type Props = {
 
 const Palette: React.FC<Props> = ({ setColorInParent }) => {
     const [selectedColor, setSelectedColor] = useState<string>(colors[0])
-    const [breakpoint, setBreakpoint] = useState<number>(15)
+    const [mobileView, setMobileView] = useState<boolean>(false)
 
     useEffect(() => {
         setColorInParent(selectedColor)
-        breakpointHandler()
-        window.addEventListener("resize", breakpointHandler)
+        palleteHandler()
+        window.addEventListener("resize", palleteHandler)
+        return(() => {
+            window.removeEventListener("resize", palleteHandler)
+        })
     }, [])
 
-    const breakpointHandler = () => {
-        setBreakpoint(breakpoint => {
-            if(window.outerWidth > 650 && breakpoint === 5){
-                console.log(1)
-                return 15
+    const palleteHandler = () => {
+        const screenWidth = window.outerWidth
+        setMobileView(mobileView => {
+            if(mobileView && screenWidth >= 600){
+                console.log(false)
+                return false
             }
-            else if(window.outerWidth <= 650 && breakpoint === 15){
-                console.log(2)
-                return 5
+            else if(!mobileView && screenWidth < 600){
+                console.log(true)
+                return true
             }
-            return breakpoint
+            return mobileView
         })
     }
 
@@ -35,17 +40,40 @@ const Palette: React.FC<Props> = ({ setColorInParent }) => {
         setColorInParent(color)
     }
 
+    const displayColors = () => {
+        let colorsJSX = []
+        for(let i=0; i<5; i++){
+            console.log((mobileView ? 'center' : ((i%2 === 0) ? 'flex-end' : 'flex-start')))
+            const colorGroup = []
+            for(let j = i*5; j < (i+1)*5; j++){
+                const isSelected = colors[j] === selectedColor
+                colorGroup.push(
+                    <div className="colorContainer" 
+                        style={{ border: isSelected ? '1.5px solid black' : '' }} 
+                        onClick={() => handleColorChange(colors[j])}
+                    >
+                        <div className="color" style={{ backgroundColor: colors[j] }}></div>
+                    </div>
+                )
+            }
+            colorsJSX.push(
+                <Grid item style={{ display: 'flex',
+                    justifyContent: (mobileView ? 'center' : ((i%2 === 0) ? 'flex-end' : 'flex-start')) 
+                }} 
+                    md={6} sm={6} xs={12}
+                >
+                    {colorGroup}
+                </Grid>
+            )
+        }
+        return colorsJSX
+    }
+
     return (
         <div id="paletteContainer">
-            {colors.map((color: string, index: number) => (
-                <>
-                    <div className="colorContainer" style={{ border: color === selectedColor ? '1px solid black' : '' }} onClick={() => handleColorChange(color)}>
-                        <div className="color" style={{ backgroundColor: color }}></div>
-                    </div>
-                    {index > 0 && index % (breakpoint-1) === 0 && <br />}
-                </>
-            ))}
-            {/* <button onClick={() => console.log(breakpoint)}></button> */}
+            <Grid container>
+                {displayColors()}
+            </Grid>
         </div>
     )
 }
