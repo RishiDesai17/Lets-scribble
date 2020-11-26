@@ -17,17 +17,18 @@ const Home: React.FC = (props) => {
         getName: state.getName
     }), []))
 
+    const avatarRef = useRef<number>(0);
     const history = useHistory();
 
     const createRoom = (e: React.FormEvent) => {
         e.preventDefault()
-        if(getName() === ""){
+        const name = getName()
+        if(name === ""){
             alert("Please enter a name")
             return
         }
         const socket = io("/")
         setSocket(socket)
-        const name = getName()
         socket.on("roomID", (roomID: string) => {
             setRoom(roomID)
             setIsHost(true)
@@ -54,7 +55,7 @@ const Home: React.FC = (props) => {
                                 Create Private Room
                             </Button>
                         </form>
-                        <Avatars />
+                        <Avatars avatarRef={avatarRef} />
                     </CardContent>
                 </Card>
             </div>

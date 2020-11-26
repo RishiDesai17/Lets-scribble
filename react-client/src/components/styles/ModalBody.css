@@ -1,0 +1,15 @@
+#modalContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#avatars{
+    text-align: center;
+    width: 700px;
+}
+#submit{
+    background-color: green;
+    color: white;
+    margin-top: 15px;
+}

@@ -3,11 +3,16 @@ import { Grid } from '@material-ui/core';
 import { avatars } from "../data/data.json";
 import './styles/Avatars.css';
 
-const Avatars: React.FC = () => {
+type Props = {
+    avatarRef: React.MutableRefObject<number>
+}
+
+const Avatars: React.FC<Props> = ({ avatarRef }) => {
     const [selectedAvatar, setSelectedAvatar] = useState<number>(0)
 
     const handleAvatarSelection = (index: number) => {
         setSelectedAvatar(index)
+        avatarRef.current = index
     }
 
     return (
