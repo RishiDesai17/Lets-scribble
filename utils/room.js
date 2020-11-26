@@ -3,7 +3,7 @@ const redis = require('../infra/redis');
 const Game = require('../models/game')
 const { nextTurn } = require("./game")
 
-exports.createRoom = async (socket, host_name) => {
+exports.createRoom = async ({ socket, host_name, avatar }) => {
     try{
         const roomID = uuid.v4()
         const body = {
@@ -12,7 +12,10 @@ exports.createRoom = async (socket, host_name) => {
         }
         await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
         socket.roomID = roomID
-        socket.name = host_name
+        socket.member = { 
+            name: host_name,
+            avatar
+        }
         socket.score = 0
         socket.join(roomID)
         socket.emit("roomID", roomID)
@@ -23,9 +26,10 @@ exports.createRoom = async (socket, host_name) => {
     }
 }
 
-exports.joinRoom = async(io, socket, roomID, name) => {
+exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
     try{
         if(!uuid.validate(roomID)){
+            console.log("here!")
             socket.emit("invalid room")
             return;
         }
@@ -36,19 +40,23 @@ exports.joinRoom = async(io, socket, roomID, name) => {
         }
         socket.join(roomID)
         socket.roomID = roomID
-        socket.name = name
+        const member = {
+            name,
+            avatar
+        }
+        socket.member = member
         socket.score = 0
         addMemberToDB({ roomID, socketID: socket.id })
         let usersInThisRoom = []
         for(let key in io.sockets.adapter.rooms[roomID].sockets){
             usersInThisRoom.push({
                 socketID: key,
-                name: io.sockets.connected[key].name
+                member: io.sockets.connected[key].member
             })
         }
         console.log(usersInThisRoom)
         socket.emit("members in this room", usersInThisRoom)
-        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, name })
+        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, member })
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
             socket.emit("game started")
@@ -72,7 +80,7 @@ const addMemberToDB = async({ roomID, socketID }) => {
     }
 }
 
-exports.disconnect = async(io, socket) => {
+exports.disconnect = async({ io, socket }) => {
     try{
         const roomID = socket.roomID
         socket.broadcast.to(roomID).emit("member left")
@@ -102,15 +110,17 @@ exports.disconnect = async(io, socket) => {
         }
         else{
             socket.broadcast.to(roomID).emit("someone left", socketID)
-            const { turn } = JSON.parse(await redis.get(roomID + " round"))
-            if(socketID === turn){
-                nextTurn({ io, roomID })
-            }
-            await Game.findByIdAndUpdate(roomID, {
-                $pull: {
-                    'sockets': socketID
+            if(roomData.gameStarted){
+                const { turn } = JSON.parse(await redis.get(roomID + " round"))
+                if(socketID === turn){
+                    nextTurn({ io, roomID })
                 }
-            })
+                await Game.findByIdAndUpdate(roomID, {
+                    $pull: {
+                        'sockets': socketID
+                    }
+                })
+            }
         }
         // console.log(await redis.keys('*'))
     }

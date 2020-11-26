@@ -11,12 +11,12 @@ const webSocketsInit = app => {
     io.on("connection", socket => {
         console.log("New connection: " + socket.id)
 
-        socket.on("create room", async(host_name) => {
-            createRoom(socket, host_name)
+        socket.on("create room", async({ host_name, avatar }) => {
+            createRoom({ socket, host_name, avatar })
         })
 
-        socket.on("join room", ({ room, name }) => {
-            joinRoom(io, socket, room, name)
+        socket.on("join room", ({ roomID, name, avatar }) => {
+            joinRoom({ io, socket, roomID, name, avatar })
         })
 
         socket.on("start game", ({ round_length, numRounds }) => {
@@ -42,7 +42,7 @@ const webSocketsInit = app => {
 
         socket.on("disconnect", () => {
             console.log(socket.id + "left")
-            disconnect(io, socket)
+            disconnect({ io, socket })
         })
     })
 

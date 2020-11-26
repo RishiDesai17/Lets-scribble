@@ -32,7 +32,6 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
 const newGame = async({ _id, members, round_length, numRounds }) => {
     await new Game({
         _id,
-        turnIndex: 0,
         sockets: Object.keys(members),
         numRounds
     }).save();

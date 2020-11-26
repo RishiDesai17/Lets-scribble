@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import useStore from '../zustand/store';
 import ModalBody from '../components/ModalBody';
 import { Modal, Backdrop, Fade } from '@material-ui/core';
@@ -12,7 +12,10 @@ type RouteParams = {
 
 type Member = {
     socketID: string
-    name: string
+    member: {
+        name: string
+        avatar: number
+    }
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +52,7 @@ const Lobby: React.FC = (props) => {
     const members = useStore(state => state.members)
 
     const [modalOpen, setModalOpen] = useState<boolean>(false)
+    const avatarRef = useRef<number>(0)
 
     const history = useHistory()
     const { room } = useParams<RouteParams>()
@@ -79,7 +83,7 @@ const Lobby: React.FC = (props) => {
             setMembers(membersInThisRoom)
         })
 
-        socket.emit("join room", { room, name: getName() })
+        socket.emit("join room", { roomID: room, name: getName(), avatar: avatarRef.current + 1 })
 
         socket.on("game started", () => {
             history.replace("/playground")
@@ -152,7 +156,7 @@ const Lobby: React.FC = (props) => {
             >
                 <Fade in={modalOpen}>
                     <div className={classes.paper}>
-                        <ModalBody modalHandler={modalHandler} />
+                        <ModalBody modalHandler={modalHandler} avatarRef={avatarRef} />
                     </div>
                 </Fade>
             </Modal>

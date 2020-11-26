@@ -5,11 +5,11 @@ import './styles/ModalBody.css';
 
 type Props = {
     modalHandler: (name: string) => void
+    avatarRef: React.MutableRefObject<number>
 }
 
-const ModalBody: React.FC<Props> = ({ modalHandler }) => {
+const ModalBody: React.FC<Props> = ({ modalHandler, avatarRef }) => {
     const name = useRef<string>("")
-    const avatarRef = useRef<number>(0);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault()

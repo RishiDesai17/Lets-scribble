@@ -33,7 +33,10 @@ type GLOBAL_VAR = {
 
 type Member = {
     socketID: string
-    name: string
+    member: {
+        name: string
+        avatar: number
+    }
 }
 
 const INIT_STATE = {
