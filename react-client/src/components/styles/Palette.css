@@ -2,6 +2,9 @@
     display: flex;
     justify-content: center;
 }
+#colorsContainer {
+    display: flex;
+}
 .color {
     cursor: pointer;
     width: 40px;

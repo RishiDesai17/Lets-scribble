@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
+#avatarsTitle {
+    font-family: 'Architects Daughter', cursive;
+}
+
+.avatarsContainer {
+    border-radius: 5px;
+    margin: 3px;
+}
+
+.avatar {
+    width: 90px;
+}

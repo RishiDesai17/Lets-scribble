@@ -12,33 +12,43 @@
     color: whitesmoke;
     font-family: 'Rock Salt', cursive;
     font-size: 60px;
-    margin: 0;
-    padding-top: 10px;
+    margin: 0 0 30px 0;
+    padding-top: 15px;
+}
+
+#card-container {
+    display: flex;
+    justify-content: center;
 }
 
 #main-card {
-    width: 500px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
+    background-color: #f5f5f5;
     box-shadow: 0 0px 20px 0px rgba(0, 0, 0, 0.6);
     padding: 40px 0 40px 0;
-    background-color: #f5f5f5;
+    width: 720px;
 }
 
-@media screen and (max-width: 700px) {
+#name-input-container {
+    margin: 25px 0 25px 0;
+}
+
+@media screen and (max-width: 750px) {
     #title {
         font-size: 50px;
+    }
+    #main-card {
+        width: 90%;
     }
 }
 
 @media screen and (max-width: 550px) {
     #title {
-        font-size: 40px;
+        font-size: 35px;
     }
-    #main-card {
-        width: 90%;
+}
+
+@media screen and (max-width: 400px) {
+    #title {
+        font-size: 27px;
     }
 }

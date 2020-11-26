@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import Avatars from '../components/Avatars';
 import useStore from '../zustand/store';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
@@ -39,21 +40,24 @@ const Home: React.FC = (props) => {
     return (
         <div id="home-background">
             <h1 id="title">LETS SCRIBBLE</h1>
-            <Card id="main-card">
-                <CardContent>
-                    {/* <h1 id="title">Hey!</h1> */}
-                    <form noValidate autoComplete="off" onSubmit={e => createRoom(e)}>
-                        <div style={{ marginTop: 25, marginBottom: 25 }}>
-                            <TextField id="filled-basic" label="Enter Name" variant="filled" onChange={e => {
-                                setName(e.target.value)
-                            }} />
-                        </div>
-                        <Button type="submit" variant="contained" color="primary">
-                            Create Private Room
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
+            <div id="card-container">
+                <Card id="main-card">
+                    <CardContent>
+                        {/* <h1 id="title">Hey!</h1> */}
+                        <form noValidate autoComplete="off" onSubmit={e => createRoom(e)}>
+                            <div id="name-input-container">
+                                <TextField id="filled-basic" label="Enter Name" variant="filled" onChange={e => {
+                                    setName(e.target.value)
+                                }} />
+                            </div>
+                            <Button type="submit" variant="contained" color="primary">
+                                Create Private Room
+                            </Button>
+                        </form>
+                        <Avatars />
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

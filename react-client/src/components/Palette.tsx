@@ -24,11 +24,9 @@ const Palette: React.FC<Props> = ({ setColorInParent }) => {
         const screenWidth = window.outerWidth
         setMobileView(mobileView => {
             if(mobileView && screenWidth >= 600){
-                console.log(false)
                 return false
             }
             else if(!mobileView && screenWidth < 600){
-                console.log(true)
                 return true
             }
             return mobileView
@@ -43,13 +41,11 @@ const Palette: React.FC<Props> = ({ setColorInParent }) => {
     const displayColors = () => {
         let colorsJSX = []
         for(let i=0; i<5; i++){
-            console.log((mobileView ? 'center' : ((i%2 === 0) ? 'flex-end' : 'flex-start')))
             const colorGroup = []
             for(let j = i*5; j < (i+1)*5; j++){
                 const isSelected = colors[j] === selectedColor
                 colorGroup.push(
-                    <div className="colorContainer" 
-                        style={{ border: isSelected ? '1.5px solid black' : '' }} 
+                    <div style={{ border: isSelected ? '1.5px solid black' : '' }} 
                         onClick={() => handleColorChange(colors[j])}
                     >
                         <div className="color" style={{ backgroundColor: colors[j] }}></div>
@@ -57,9 +53,8 @@ const Palette: React.FC<Props> = ({ setColorInParent }) => {
                 )
             }
             colorsJSX.push(
-                <Grid item style={{ display: 'flex',
-                    justifyContent: (mobileView ? 'center' : ((i%2 === 0) ? 'flex-end' : 'flex-start')) 
-                }} 
+                <Grid item id="colorsContainer"
+                    style={{ justifyContent: (mobileView ? 'center' : ((i%2 === 0) ? 'flex-end' : 'flex-start')) }}
                     md={6} sm={6} xs={12}
                 >
                     {colorGroup}

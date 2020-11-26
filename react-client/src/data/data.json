@@ -25,5 +25,13 @@
         "#cccccc",
         "#aaaaaa",
         "#000000"
+    ],
+    "avatars": [
+        "avatar_1.jpg",
+        "avatar_2.jpg",
+        "avatar_3.jpg",
+        "avatar_4.jpg",
+        "avatar_5.jpg",
+        "avatar_6.jpg"
     ]
 }
