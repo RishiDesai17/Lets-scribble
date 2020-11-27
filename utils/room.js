@@ -103,7 +103,7 @@ exports.disconnect = async({ io, socket }) => {
             socket.broadcast.to(roomID).emit("someone left", socketID)
             const { turn } = JSON.parse(await redis.get(roomID + " round"))
             if(socketID === turn){
-                nextTurn({ io, roomID })
+                nextTurn({ io, socket })
             }
             await Game.findByIdAndUpdate(roomID, {
                 $pull: {
@@ -134,7 +134,7 @@ const allotNewHost = async({ newHost, roomData, socket }) => {
     try{
         roomData.host = newHost
         socket.broadcast.to(newHost).emit("new host")
-        await redis.set(roomID, JSON.stringify(roomData))
+        await redis.set(socket.roomID, JSON.stringify(roomData))
     }
     catch(err){
         console.log(err)

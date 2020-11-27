@@ -29,7 +29,7 @@ const webSocketsInit = app => {
         })
 
         socket.on("next turn", () => {
-            nextTurn({ io, roomID: socket.roomID })
+            nextTurn({ io, socket })
         })
 
         socket.on("chosen word", word => {
