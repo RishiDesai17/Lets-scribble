@@ -4,6 +4,7 @@ import useStore from '../zustand/store';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
 import { Card, CardContent, TextField, Button, Grid } from '@material-ui/core';
+import { toast } from 'react-toastify';
 import "./styles/Home.css";
 
 const Home: React.FC = (props) => {
@@ -24,7 +25,14 @@ const Home: React.FC = (props) => {
         e.preventDefault()
         const name = getName()
         if(name === ""){
-            alert("Please enter a name")
+            toast.error('Please enter a name', {
+                position: "top-center",
+                autoClose: 2000,
+                closeOnClick: true,
+                hideProgressBar: true,
+                pauseOnHover: true,
+                draggable: true
+            });
             return
         }
         const socket = io("/")

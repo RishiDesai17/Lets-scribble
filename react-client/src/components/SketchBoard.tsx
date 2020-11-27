@@ -4,6 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
+import { toast } from 'react-toastify';
 import './styles/SketchBoard.css';
 
 type Coordinates = {
@@ -84,7 +85,14 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
             console.log(`${member.name} is choosing a word`)
         })
         socket.on("start guessing", () => {
-            alert("start guessin'")
+            toast.info('start guessing', {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
         })
         attachEventListeners()
     }

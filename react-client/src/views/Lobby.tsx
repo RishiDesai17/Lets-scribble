@@ -5,6 +5,7 @@ import { Modal, Backdrop, Fade } from '@material-ui/core';
 import { makeStyles } from "@material-ui/core/styles";
 import { useHistory, useParams } from 'react-router-dom';
 import io from 'socket.io-client';
+import { toast } from "react-toastify";
 
 type RouteParams = {
     room: string
@@ -94,7 +95,14 @@ const Lobby: React.FC = (props) => {
         })
 
         socket.on("invalid room", () => {
-            alert("Invalid room")
+            toast.error('Invalid Room', {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
             history.replace("/")
         })
     }
@@ -103,7 +111,14 @@ const Lobby: React.FC = (props) => {
         const socket = getSocket()
 
         socket.on("game over", () => {
-            alert("game over")
+            toast.info('Game over', {
+                position: "top-center",
+                autoClose: 3000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
             socket.disconnect()
             reset()
             history.replace("/")
@@ -118,7 +133,14 @@ const Lobby: React.FC = (props) => {
         })
 
         socket.on("something broke", () => {
-            alert("Something went wrong, please try again later")
+            toast.error('Something went wrong, please try again later', {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
         })
     }
 

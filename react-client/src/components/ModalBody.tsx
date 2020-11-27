@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import Avatars from './Avatars';
 import { TextField, Button } from '@material-ui/core';
+import { toast } from 'react-toastify';
 import './styles/ModalBody.css';
 
 type Props = {
@@ -14,7 +15,14 @@ const ModalBody: React.FC<Props> = ({ modalHandler, avatarRef }) => {
     const submit = (e: React.FormEvent) => {
         e.preventDefault()
         if(name.current === ""){
-            alert("Please enter a name")
+            toast.error('Please enter a name', {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true
+            });
             return
         }
         modalHandler(name.current)
