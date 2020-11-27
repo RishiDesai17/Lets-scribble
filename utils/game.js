@@ -14,7 +14,8 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
                 _id: roomID,
                 members,
                 round_length,
-                numRounds
+                numRounds,
+                socket
             })
             turn({
                 io, 
@@ -29,13 +30,19 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
     }
 }
 
-const newGame = async({ _id, members, round_length, numRounds }) => {
-    await new Game({
-        _id,
-        sockets: Object.keys(members),
-        numRounds
-    }).save();
-    await redis.set(_id + " round", JSON.stringify({ round_length }))
+const newGame = async({ _id, members, round_length, numRounds, socket }) => {
+    try {
+        await new Game({
+            _id,
+            sockets: Object.keys(members),
+            numRounds
+        }).save();
+        await redis.set(_id + " round", JSON.stringify({ round_length }))
+    }
+    catch(err) {
+        console.log(err)
+        socket.emit("something broke")
+    }
 }
 
 exports.startGuessing = async({ socket, word, roomID }) => {
@@ -80,8 +87,9 @@ const turn = async({ io, socketID, roomID }) => {
     })
 }
 
-exports.nextTurn = async({ io, roomID }) => {
+exports.nextTurn = async({ io, socket }) => {
     try {
+        const roomID = socket.roomID
         const { sockets } = await Game.findById(roomID).select('sockets')
         let roundData = JSON.parse(await redis.get(roomID + " round"))
         let turnIndex = sockets.indexOf(roundData.turn)
