@@ -3,7 +3,7 @@ import Avatars from '../components/Avatars';
 import useStore from '../zustand/store';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
-import { Card, CardContent, TextField, Button } from '@material-ui/core';
+import { Card, CardContent, TextField, Button, Grid } from '@material-ui/core';
 import "./styles/Home.css";
 
 const Home: React.FC = (props) => {
@@ -50,18 +50,17 @@ const Home: React.FC = (props) => {
             <div id="card-container">
                 <Card id="main-card">
                     <CardContent>
-                        {/* <h1 id="title">Hey!</h1> */}
                         <form noValidate autoComplete="off" onSubmit={e => createRoom(e)}>
                             <div id="name-input-container">
                                 <TextField id="filled-basic" label="Enter Name" variant="filled" onChange={e => {
                                     setName(e.target.value)
                                 }} />
                             </div>
-                            <Button type="submit" variant="contained" color="primary">
+                            <Avatars avatarRef={avatarRef} />
+                            <Button id="create-room-button" type="submit" variant="contained" color="primary">
                                 Create Private Room
                             </Button>
                         </form>
-                        <Avatars avatarRef={avatarRef} />
                     </CardContent>
                 </Card>
             </div>
