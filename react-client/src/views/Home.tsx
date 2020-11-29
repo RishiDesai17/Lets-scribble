@@ -29,6 +29,10 @@ const Home: React.FC = (props) => {
             toastError('Please enter a name')
             return
         }
+        if(name.length < 3 || name.length > 15){
+            toastError('Name should be 3-15 characters long')
+            return
+        }
         const socket = io("/")
         setSocket(socket)
         socket.on("roomID", (roomID: string) => {

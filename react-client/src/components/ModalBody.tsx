@@ -14,18 +14,27 @@ const ModalBody: React.FC<Props> = ({ modalHandler }) => {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault()
-        if(getName() === ""){
-            toast.error('Please enter a name', {
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true
-            });
+        const name = getName()
+        if(name === ""){
+            toastError('Please enter a name')
+            return
+        }
+        if(name.length < 3 || name.length > 15){
+            toastError('Name should be 3-15 characters long')
             return
         }
         modalHandler()
+    }
+
+    const toastError = (message: string) => {
+        toast.error(message, {
+            position: "top-center",
+            autoClose: 2000,
+            closeOnClick: true,
+            hideProgressBar: true,
+            pauseOnHover: true,
+            draggable: true
+        });
     }
 
     return (
