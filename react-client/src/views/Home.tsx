@@ -42,7 +42,7 @@ const Home: React.FC = (props) => {
             setIsHost(true)
             setMembers([{ 
                 socketID: socket.id, 
-                member: { 
+                memberDetails: { 
                     name,
                     avatar: avatarRef.current + 1
                 }

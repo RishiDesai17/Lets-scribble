@@ -1,11 +1,14 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import useStore from '../zustand/store';
+import GameSettings from '../components/GameSettings';
 import ModalBody from '../components/ModalBody';
-import { Modal, Backdrop, Fade } from '@material-ui/core';
-import { makeStyles } from "@material-ui/core/styles";
+import { Modal, Backdrop, Fade, Grid } from '@material-ui/core';
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { useHistory, useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { toast } from "react-toastify";
+import './styles/Lobby.css';
+import LobbyMembers from '../components/LobbyMembers';
 
 type RouteParams = {
     room: string
@@ -13,25 +16,32 @@ type RouteParams = {
 
 type Member = {
     socketID: string
-    member: {
+    memberDetails: {
         name: string
         avatar: number
     }
 }
 
-const useStyles = makeStyles((theme) => ({
-    modal: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    paper: {
-      backgroundColor: "#f5f5f5",
-      border: "2px solid #000",
-      boxShadow: theme.shadows[5],
-      padding: theme.spacing(2, 4, 3)
-    }
-}));
+type Settings = {
+    round_length: number, 
+    numRounds: number
+}
+
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        modal: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+        },
+        paper: {
+            backgroundColor: "#f5f5f5",
+            border: "2px solid #000",
+            boxShadow: theme.shadows[5],
+            padding: theme.spacing(2, 4, 3)
+        }
+    }),
+);
 
 const Lobby: React.FC = (props) => {
     const { isHost, setSocket, setRoom, setName, setMembers, addMember, removeMember, setIsHost, reset, getSocket, getRoom, getName } = useStore(useCallback(state => ({
@@ -63,7 +73,7 @@ const Lobby: React.FC = (props) => {
     useEffect(() => {
         if(getRoom() === ""){
             setRoom(room)
-            
+
             if(getName() === ""){
                 setModalOpen(true)
             }
@@ -84,7 +94,11 @@ const Lobby: React.FC = (props) => {
             setMembers(membersInThisRoom)
         })
 
-        socket.emit("join room", { roomID: room, name: getName(), avatar: avatarRef.current + 1 })
+        socket.emit("join room", { 
+            roomID: room, 
+            name: getName(), 
+            avatar: avatarRef.current + 1 
+        })
 
         socket.on("game started", () => {
             history.replace("/playground")
@@ -151,20 +165,27 @@ const Lobby: React.FC = (props) => {
         sharedSocketFns()
     }
 
-    const startGame = () => {
+    const startGame = ({ round_length, numRounds }: Settings) => {
         getSocket().emit("start game", {
-            numRounds: 1,
-            round_length: 60
+            round_length,
+            numRounds
         })
         history.replace("/playground")
     }
 
     return (
-        <>
-            <h1>Lobby</h1>
-            <h4>{getRoom()}</h4>
-            <p>{JSON.stringify(members)}</p>
-            <button onClick={startGame} disabled={!(isHost && members.length > 1)}>Start game</button>
+        <div id="lobbyBackground">
+            <h1 id="lobbyTitle">Lobby</h1>
+            <Grid container>
+                {isHost && 
+                    <Grid item md={4} sm={4} xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+                        <GameSettings numMembers={members.length} startGame={startGame} />
+                    </Grid>
+                }
+                <Grid item md={isHost ? 8 : 12} sm={isHost ? 8 : 12} xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <LobbyMembers members={members} isHost={isHost} socketID={getSocket().id} />
+                </Grid>
+            </Grid>
             <Modal
                 aria-labelledby="transition-modal-title"
                 aria-describedby="transition-modal-description"
@@ -182,7 +203,7 @@ const Lobby: React.FC = (props) => {
                     </div>
                 </Fade>
             </Modal>
-        </>
+        </div>
     )
 }
 

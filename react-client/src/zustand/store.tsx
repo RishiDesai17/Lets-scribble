@@ -33,7 +33,7 @@ type GLOBAL_VAR = {
 
 type Member = {
     socketID: string
-    member: {
+    memberDetails: {
         name: string
         avatar: number
     }

@@ -43,10 +43,10 @@ const Playground: React.FC = (props) => {
             <h1>Playground</h1>
             <Grid container>
                 <Grid item md={2} sm={2} xs={1}>
-                    {members.map(Member => (
+                    {members.map(member => (
                         <>
-                            <p>{Member.member.name}</p>
-                            <img src={`/images/avatar_${Member.member.avatar}.jpg`} />
+                            <p>{member.memberDetails.name}</p>
+                            <img src={`/images/avatar_${member.memberDetails.avatar}.jpg`} />
                         </>
                     ))}
                 </Grid>

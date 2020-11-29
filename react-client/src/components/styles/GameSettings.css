@@ -1,0 +1,24 @@
+#settingsFormContainer {
+    width: 85%;
+    margin-bottom: 25px
+}
+
+#settingsTitle {
+    font-family: 'Rock Salt', cursive;
+    margin-bottom: 0;
+}
+
+.inputs {
+    width: 250px;
+    margin: 20px
+}
+
+.fieldsContainer {
+    padding: 20px 0 20px 0;
+}
+
+@media screen and (max-width: 960px) {
+    .inputs{
+        width: 95%;
+    }
+}

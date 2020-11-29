@@ -12,7 +12,7 @@ exports.createRoom = async ({ socket, host_name, avatar }) => {
         }
         await redis.set(roomID, JSON.stringify(body)) // key: roomID  value: host, game(started or waiting in lobby)
         socket.roomID = roomID
-        socket.member = { 
+        socket.memberDetails = { 
             name: host_name,
             avatar
         }
@@ -40,23 +40,23 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
         }
         socket.join(roomID)
         socket.roomID = roomID
-        const member = {
+        const memberDetails = {
             name,
             avatar
         }
-        socket.member = member
+        socket.memberDetails = memberDetails
         socket.score = 0
         addMemberToDB({ roomID, socket })
         let usersInThisRoom = []
         for(let key in io.sockets.adapter.rooms[roomID].sockets){
             usersInThisRoom.push({
                 socketID: key,
-                member: io.sockets.connected[key].member
+                memberDetails: io.sockets.connected[key].memberDetails
             })
         }
         console.log(usersInThisRoom)
         socket.emit("members in this room", usersInThisRoom)
-        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, member })
+        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, memberDetails })
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
             socket.emit("game started")
@@ -91,7 +91,10 @@ exports.disconnect = async({ io, socket }) => {
         if(roomDetails){
             members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
         }
-        else{ return }
+        else{
+            deleteRoom({ roomID, socket })
+            return 
+        }
         const socketID = socket.id
         if(roomData.gameStarted){
             if(members.length === 1){
