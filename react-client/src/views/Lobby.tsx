@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import useStore from '../zustand/store';
 import GameSettings from '../components/GameSettings';
+import LobbyMembers from '../components/LobbyMembers';
 import ModalBody from '../components/ModalBody';
 import { Modal, Backdrop, Fade, Grid } from '@material-ui/core';
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
@@ -8,7 +9,6 @@ import { useHistory, useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { toast } from "react-toastify";
 import './styles/Lobby.css';
-import LobbyMembers from '../components/LobbyMembers';
 
 type RouteParams = {
     room: string
@@ -44,12 +44,28 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const Lobby: React.FC = (props) => {
-    const { isHost, setSocket, setRoom, setName, setMembers, addMember, removeMember, setIsHost, reset, getSocket, getRoom, getName } = useStore(useCallback(state => ({
+    const { 
+        isHost, 
+        members,
+        
+        setSocket,
+        setRoom,
+        setMembers,
+        addMember,
+        removeMember,
+        setIsHost,
+        reset,
+        
+        getSocket,
+        getRoom,
+        getName,
+        getAvatar
+    } = useStore(useCallback(state => ({
         isHost: state.isHost,
+        members: state.members,
         
         setSocket: state.setSocket,
         setRoom: state.setRoom,
-        setName: state.setName,
         setMembers: state.setMembers,
         addMember: state.addMember,
         removeMember: state.removeMember,
@@ -58,12 +74,11 @@ const Lobby: React.FC = (props) => {
 
         getSocket: state.getSocket,
         getRoom: state.getRoom,
-        getName: state.getName
+        getName: state.getName,
+        getAvatar: state.getAvatar
     }), []))
-    const members = useStore(state => state.members)
 
     const [modalOpen, setModalOpen] = useState<boolean>(false)
-    const avatarRef = useRef<number>(0)
 
     const history = useHistory()
     const { room } = useParams<RouteParams>()
@@ -74,19 +89,20 @@ const Lobby: React.FC = (props) => {
         if(getRoom() === ""){
             setRoom(room)
 
-            if(getName() === ""){
+            if(!getSocket().id && getName() === ""){
                 setModalOpen(true)
             }
             else{
-                init()
+                nonHostSocketFns()
+                socketFns()
             }
         }
         else{
-            sharedSocketFns()
+            socketFns()
         }
     }, [])
 
-    const init = () => {
+    const nonHostSocketFns = () => {
         const socket = io("/")
         setSocket(socket)
         
@@ -97,7 +113,7 @@ const Lobby: React.FC = (props) => {
         socket.emit("join room", { 
             roomID: room, 
             name: getName(), 
-            avatar: avatarRef.current + 1 
+            avatar: getAvatar() + 1
         })
 
         socket.on("game started", () => {
@@ -121,7 +137,7 @@ const Lobby: React.FC = (props) => {
         })
     }
 
-    const sharedSocketFns = () => {
+    const socketFns = () => {
         const socket = getSocket()
 
         socket.on("game over", () => {
@@ -158,11 +174,10 @@ const Lobby: React.FC = (props) => {
         })
     }
 
-    const modalHandler = (name: string) => {
-        setName(name)
+    const modalHandler = () => {
         setModalOpen(false)
-        init()
-        sharedSocketFns()
+        nonHostSocketFns()
+        socketFns()
     }
 
     const startGame = ({ round_length, numRounds }: Settings) => {
@@ -199,7 +214,7 @@ const Lobby: React.FC = (props) => {
             >
                 <Fade in={modalOpen}>
                     <div className={classes.paper}>
-                        <ModalBody modalHandler={modalHandler} avatarRef={avatarRef} />
+                        <ModalBody modalHandler={modalHandler} />
                     </div>
                 </Fade>
             </Modal>

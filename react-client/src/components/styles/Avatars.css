@@ -12,4 +12,5 @@
 .avatar {
     cursor: pointer;
     width: 90px;
+    border-radius: 45px;
 }

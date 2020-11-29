@@ -1,20 +1,20 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
+import useStore from '../zustand/store';
 import Avatars from './Avatars';
 import { TextField, Button } from '@material-ui/core';
 import { toast } from 'react-toastify';
 import './styles/ModalBody.css';
 
 type Props = {
-    modalHandler: (name: string) => void
-    avatarRef: React.MutableRefObject<number>
+    modalHandler: () => void
 }
 
-const ModalBody: React.FC<Props> = ({ modalHandler, avatarRef }) => {
-    const name = useRef<string>("")
+const ModalBody: React.FC<Props> = ({ modalHandler }) => {
+    const { getName, setName } = useStore(useCallback(state => ({ getName: state.getName, setName: state.setName }), []))
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault()
-        if(name.current === ""){
+        if(getName() === ""){
             toast.error('Please enter a name', {
                 position: "top-center",
                 autoClose: 2000,
@@ -25,17 +25,15 @@ const ModalBody: React.FC<Props> = ({ modalHandler, avatarRef }) => {
             });
             return
         }
-        modalHandler(name.current)
+        modalHandler()
     }
 
     return (
         <>
             <form noValidate autoComplete="off" id="modalContainer" onSubmit={e => submit(e)}>
-                <TextField id="standard-basic" label="Enter name" onChange={e => {
-                    name.current = e.target.value
-                }} />
+                <TextField id="standard-basic" label="Enter name" defaultValue={getName()} onChange={e => setName(e.target.value)} />
                 <div id="avatars">
-                    <Avatars avatarRef={avatarRef} />
+                    <Avatars />
                 </div>
                 <Button type="submit" id="submit">Submit</Button>
             </form>

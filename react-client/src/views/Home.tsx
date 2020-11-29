@@ -8,31 +8,25 @@ import { toast } from 'react-toastify';
 import "./styles/Home.css";
 
 const Home: React.FC = (props) => {
-    const { setSocket, setRoom, setName, setIsHost, setMembers, getName } = useStore(useCallback(state => ({
+    const { setSocket, setRoom, setName, setIsHost, setMembers, getName, getAvatar } = useStore(useCallback(state => ({
         setSocket: state.setSocket,
         setRoom: state.setRoom,
         setName: state.setName,
         setIsHost: state.setIsHost,
         setMembers: state.setMembers,
 
-        getName: state.getName
+        getName: state.getName,
+        getAvatar: state.getAvatar
     }), []))
 
-    const avatarRef = useRef<number>(0);
+    const room = useRef<string>("")
     const history = useHistory();
 
-    const createRoom = (e: React.FormEvent) => {
-        e.preventDefault()
+    const createRoom = () => {
         const name = getName()
+        const avatar = getAvatar()
         if(name === ""){
-            toast.error('Please enter a name', {
-                position: "top-center",
-                autoClose: 2000,
-                closeOnClick: true,
-                hideProgressBar: true,
-                pauseOnHover: true,
-                draggable: true
-            });
+            toastError('Please enter a name')
             return
         }
         const socket = io("/")
@@ -44,12 +38,33 @@ const Home: React.FC = (props) => {
                 socketID: socket.id, 
                 memberDetails: { 
                     name,
-                    avatar: avatarRef.current + 1
+                    avatar: avatar + 1
                 }
             }])
             history.replace(`/lobby/${roomID}`)
         })
-        socket.emit("create room", { host_name: name, avatar: avatarRef.current + 1 })
+        socket.emit("create room", { host_name: name, avatar: avatar + 1 })
+    }
+
+    const join = () => {
+        const urlRegex = /^(http)s?:\/\/localhost:3000\/lobby\/([a-z0-9\-])\/?/
+        if(!urlRegex.test(room.current)){
+            toastError("Enter valid room URL")
+            return
+        }
+        const roomID = room.current.split("/")[4]
+        history.replace(`/lobby/${roomID}`)
+    }
+
+    const toastError = (message: string) => {
+        toast.error(message, {
+            position: "top-center",
+            autoClose: 2000,
+            closeOnClick: true,
+            hideProgressBar: true,
+            pauseOnHover: true,
+            draggable: true
+        });
     }
 
     return (
@@ -58,16 +73,43 @@ const Home: React.FC = (props) => {
             <div id="card-container">
                 <Card id="main-card">
                     <CardContent>
-                        <form noValidate autoComplete="off" onSubmit={e => createRoom(e)}>
+                        <form noValidate autoComplete="off">
                             <div id="name-input-container">
-                                <TextField id="filled-basic" label="Enter Name" variant="filled" onChange={e => {
-                                    setName(e.target.value)
-                                }} />
+                                <TextField id="filled-basic" label="Enter Name" variant="filled" defaultValue={getName()} onChange={e => setName(e.target.value)} />
                             </div>
-                            <Avatars avatarRef={avatarRef} />
-                            <Button id="create-room-button" type="submit" variant="contained" color="primary">
-                                Create Private Room
-                            </Button>
+                            <Avatars />
+                            <div id="buttons-container">
+                                <Grid container>
+                                    <Grid item md={5} sm={12} xs={12}>
+                                        <Button id="create-room-button" variant="contained" color="primary" onClick={createRoom}>
+                                            Create Private Room
+                                        </Button>
+                                    </Grid>
+                                    <Grid item md={2} sm={12} xs={12} id="or">OR</Grid>
+                                    <Grid item md={5} sm={12} xs={12} justify="center">
+                                        <div style={{ marginTop: -3 }}>
+                                            <TextField label="Enter Room URL" variant="outlined" style={{ margin: '0 8px 10px 0' }} 
+                                                inputProps={{
+                                                    style: {
+                                                        height: 7
+                                                    },
+                                                }} 
+                                                InputLabelProps={{
+                                                    style: {
+                                                        top: -6
+                                                    },
+                                                }} 
+                                                onChange={e => {
+                                                    room.current = e.target.value
+                                                }} 
+                                            />
+                                            <Button variant="contained" onClick={join}>
+                                                Join
+                                            </Button>    
+                                        </div>
+                                    </Grid>
+                                </Grid>
+                            </div>
                         </form>
                     </CardContent>
                 </Card>

@@ -26,7 +26,7 @@
 #main-card {
     background-color: #f5f5f5;
     box-shadow: 0 0px 20px 0px rgba(0, 0, 0, 0.6);
-    padding: 25px 0 15px 0;
+    padding: 25px 0 12px 0;
     width: 720px;
 }
 
@@ -34,8 +34,18 @@
     margin-bottom: 20px;
 }
 
-#create-room-button {
+#buttons-container {
     margin-top: 30px;
+}
+
+/* #create-room-button {
+    margin-top: 30px;
+} */
+
+@media screen and (max-width: 960px) {
+    #or {
+        margin: 20px 0 20px 0;
+    }
 }
 
 @media screen and (max-width: 750px) {

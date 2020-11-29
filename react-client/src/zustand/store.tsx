@@ -2,10 +2,8 @@ import create from 'zustand';
 import io from 'socket.io-client';
 
 type State = {
-    // socket: SocketIOClient.Socket
-    // room: string
-    // name: string
     isHost: boolean
+    avatar: number
     turn: boolean
     members: Member[]
 
@@ -16,6 +14,7 @@ type State = {
     addMember: (newMember: Member) => void
     removeMember: (exMember: string) => void
     setIsHost: (isHost: boolean) => void
+    setAvatar: (avatar: number) => void
     setTurn: (turn: boolean) => void
     reset: () => void
 
@@ -23,6 +22,7 @@ type State = {
     getRoom: () => string
     getName: () => string
     getIsHost: () => boolean
+    getAvatar: () => number
 }
 
 type GLOBAL_VAR = {
@@ -40,10 +40,8 @@ type Member = {
 }
 
 const INIT_STATE = {
-    socket: io.Socket,
-    room: "",
-    name: "",
     isHost: false,
+    avatar: 0,
     turn: false,
     members: []
 }
@@ -51,7 +49,7 @@ const INIT_STATE = {
 const GLOBAL_VARS: GLOBAL_VAR = {
     socket: io.Socket,
     room: "",
-    name: "",
+    name: ""
 }
 
 const useStore = create<State>((set, get) => ({
@@ -69,9 +67,10 @@ const useStore = create<State>((set, get) => ({
         return { members }
     }),
     setIsHost: (isHost: boolean) => set({ isHost }),
+    setAvatar: (avatar: number) => set({ avatar }),
     setTurn: (turn: boolean) => set({ turn }),
     reset: () => {
-        set({ ...INIT_STATE })
+        set({ ...INIT_STATE, avatar: get().avatar })
         GLOBAL_VARS.socket = io.Socket
         GLOBAL_VARS.room = ""
     },
@@ -79,6 +78,7 @@ const useStore = create<State>((set, get) => ({
     getSocket: () => GLOBAL_VARS.socket, //get().socket,
     getRoom: () => GLOBAL_VARS.room,
     getName: () => GLOBAL_VARS.name,
+    getAvatar: () => get().avatar,
     getIsHost: () => get().isHost
 }))
 
