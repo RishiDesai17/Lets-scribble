@@ -78,13 +78,14 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         })
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
-            setMyTurn(true)
             setOpen(true)
+            setTimeout(autoSelect, 5000)
         })
         socket.on("someone choosing word", (member: Member) => {
             console.log(`${member.name} is choosing a word`)
         })
         socket.on("start guessing", () => {
+            setMyTurn(false)
             toast.info('start guessing', {
                 position: "top-center",
                 autoClose: 2000,
@@ -201,8 +202,15 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         socket.emit("chosen word", choice)
         setTimeout(() => {
             socket.emit("next turn")
-        }, 5 * 1000)
+        }, 12 * 1000)
+        setMyTurn(true)
         setOpen(false)
+    }
+
+    const autoSelect = () => {
+        if(!myTurn){ // myTurn still false means that word hasnt been selected by client yet
+            chooseWord(wordChoices.current[0])
+        }
     }
 
     return (
