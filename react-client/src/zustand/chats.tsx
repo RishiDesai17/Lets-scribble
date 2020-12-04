@@ -3,6 +3,7 @@ import create from 'zustand';
 type State = {
     chats: Message[]
     addChat: (newChat: Message) => void
+    clearChats: () => void
 }
 
 type Message = {
@@ -17,8 +18,8 @@ const INIT_STATE = {
 
 const useStore = create<State>((set, get) => ({
     ...INIT_STATE,
-
-    addChat: (newChat: Message) => set(state => ({ chats: [...state.chats, newChat] }))
+    addChat: (newChat: Message) => set(state => ({ chats: [...state.chats, newChat] })),
+    clearChats: () => set({ ...INIT_STATE })
 }))
 
 export default useStore
