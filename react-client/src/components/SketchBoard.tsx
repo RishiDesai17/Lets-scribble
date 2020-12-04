@@ -14,7 +14,10 @@ type Coordinates = {
 
 type Member = {
     socketID: string
-    name: string
+    memberDetails: {
+        name: string
+        avatar: number
+    }
 }
 
 type HandleEventTypeProps = {
@@ -32,7 +35,7 @@ type ReceiveStrokesProps = {
 type Props = {
     getColor: () => string
     myTurn: boolean
-    setMyTurn: (turn: boolean) => void
+    setMyTurn: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -79,23 +82,39 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
             setOpen(true)
-            setTimeout(autoSelect, 5000)
+            setMyTurn(true)
         })
         socket.on("someone choosing word", (member: Member) => {
-            console.log(`${member.name} is choosing a word`)
+            console.log(member)
+            // console.log(`${member.memberDetails.name} is choosing a word`)
         })
         socket.on("start guessing", () => {
-            setMyTurn(false)
-            toast.info('start guessing', {
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true
-            });
+            toastInfo('start guessing')
+        })
+        socket.on("auto-selected", () => {
+            setMyTurn(turn => {
+                if(turn){
+                    setOpen(false)
+                    timerForNextTurn(socket)
+                }
+                else{
+                    toastInfo('start guessing')
+                }
+                return turn
+            })
         })
         attachEventListeners()
+    }
+
+    const toastInfo = (message: string) => {
+        toast.info(message, {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+        });
     }
 
     const attachEventListeners = (): void => {
@@ -200,17 +219,15 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     const chooseWord = (choice: string) => {
         const socket = getSocket()
         socket.emit("chosen word", choice)
-        setTimeout(() => {
-            socket.emit("next turn")
-        }, 12 * 1000)
-        setMyTurn(true)
+        timerForNextTurn(socket)
         setOpen(false)
     }
 
-    const autoSelect = () => {
-        if(!myTurn){ // myTurn still false means that word hasnt been selected by client yet
-            chooseWord(wordChoices.current[0])
-        }
+    const timerForNextTurn = (socket: SocketIOClient.Socket) => {
+        setTimeout(() => {
+            setMyTurn(false)
+            socket.emit("next turn")
+        }, 15 * 1000)
     }
 
     return (

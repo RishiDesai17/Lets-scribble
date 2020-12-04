@@ -70,7 +70,7 @@ exports.validateWord = async({ io, socket, word }) => {
         color = "black"
     }
     else if(word === correctAnswer) {
-        const score = round_length - ((new Date() - new Date(startTime)) / 1000)
+        const score = Math.ceil(round_length - ((new Date() - new Date(startTime)) / 1000))
         console.log(score)
         socket.score += score
         socket.currentScore = score
@@ -90,6 +90,22 @@ const turn = async({ io, socketID, roomID }) => {
         socketID,
         name: io.sockets.connected[socketID].name
     })
+    setTimeout(() => {
+        autoSelect({ io, roomID, word: words[0], socketID })
+    }, 5000)
+}
+
+const autoSelect = async({ io, roomID, word, socketID }) => {
+    const roundData = JSON.parse(await redis.get(roomID + " round"))
+    if(!roundData.word) {
+        await redis.set(roomID + " round", JSON.stringify({
+            ...roundData,
+            word,
+            startTime: new Date(),
+            turn: socketID
+        }))
+        io.sockets.in(roomID).emit("auto-selected", word)
+    }
 }
 
 exports.nextTurn = async({ io, socket }) => {
@@ -105,6 +121,7 @@ exports.nextTurn = async({ io, socket }) => {
             turnIndex += 1
         }
         roundData.turn = sockets[turnIndex]
+        roundData.word = undefined
         scoreManagement({ io, roomID })
         turn({ io, socketID: sockets[turnIndex], roomID })
         await redis.set(roomID + " round", JSON.stringify(roundData))
