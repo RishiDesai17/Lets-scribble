@@ -1,0 +1,10 @@
+#drawerButton {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+#drawerChatbox {
+    width: 250px;
+    height: 100vh;
+}

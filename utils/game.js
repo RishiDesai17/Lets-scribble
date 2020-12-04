@@ -47,12 +47,13 @@ const newGame = async({ _id, members, round_length, numRounds, socket }) => {
 
 exports.startGuessing = async({ socket, word, roomID }) => {
     try{
-        const { round_length } = await redis.get(roomID + " round")
+        const roundData = JSON.parse(await redis.get(roomID + " round"))
+        console.log(roundData)
         await redis.set(roomID + " round", JSON.stringify({
+            ...roundData,
             word,
             startTime: new Date(),
-            turn: socket.id,
-            round_length
+            turn: socket.id
         }))
         socket.broadcast.to(roomID).emit("start guessing")
     }
@@ -63,16 +64,20 @@ exports.startGuessing = async({ socket, word, roomID }) => {
 }
 
 exports.validateWord = async({ io, socket, word }) => {
-    const { word: correctAnswer, startTime, round_length } = await redis.get(roomID + " round")
-    let color = "#000"
-    if(correctAnswer && !socket.currentScore && word === correctAnswer) {
-        const score = round_length - ((new Date() - startTime) / 1000)
+    const { word: correctAnswer, startTime, round_length } = JSON.parse(await redis.get(socket.roomID + " round"))
+    let color = "red"
+    if(socket.currentScore){
+        color = "black"
+    }
+    else if(word === correctAnswer) {
+        const score = round_length - ((new Date() - new Date(startTime)) / 1000)
+        console.log(score)
         socket.score += score
         socket.currentScore = score
         color = "green"
     }
     io.sockets.in(socket.roomID).emit("guesses", {
-        sender: io.sockets.connected[socket.id].name,
+        sender: io.sockets.connected[socket.id].memberDetails.name,
         message: word,
         color
     })

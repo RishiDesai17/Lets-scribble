@@ -60,6 +60,7 @@ const Lobby: React.FC = (props) => {
         getRoom,
         getName,
         getAvatar
+        
     } = useStore(useCallback(state => ({
         isHost: state.isHost,
         members: state.members,
