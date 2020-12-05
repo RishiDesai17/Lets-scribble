@@ -2,9 +2,7 @@ import React, { useRef, useEffect, useCallback, useState, memo } from 'react';
 import useStore from '../zustand/store';
 import useChatsStore from '../zustand/chats';
 import { makeStyles } from "@material-ui/core/styles";
-import Modal from "@material-ui/core/Modal";
-import Backdrop from "@material-ui/core/Backdrop";
-import Fade from "@material-ui/core/Fade";
+import { Modal, Backdrop, Fade, Collapse } from "@material-ui/core";
 import { toast } from 'react-toastify';
 import './styles/SketchBoard.css';
 
@@ -67,16 +65,20 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     const previousStrokeSent = useRef<number>(new Date().getTime())
     const wordChoices = useRef<Array<string>>([])
 
-    const [canvasSize, setCanvasSize] = useState<number>(550);
+    const [canvasSize, setCanvasSize] = useState<number>(500);
     const [open, setOpen] = useState<boolean>(false);
     
     const classes = useStyles();
 
-    const { getSocket } = useStore(useCallback(state => ({
-        getSocket: state.getSocket
+    const { getSocket, reset } = useStore(useCallback(state => ({
+        getSocket: state.getSocket,
+        reset: state.reset
     }), []))
 
-    const addChat = useChatsStore(state => state.addChat)
+    const { addChat, clearChats } = useChatsStore(state => ({
+        addChat: state.addChat,
+        clearChats: state.clearChats
+    }))
 
     useEffect(() => {
         init()
@@ -126,9 +128,21 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         socket.on("guesses", (message: Message) => {
             addChat(message)
         })
+        socket.on("game over", () => {
+            toastInfo('Game over')
+            socket.disconnect()
+            reset()
+            // history.replace("/")
+            clearChats()
+        })
         canvasSizeHandler()
         attachEventListeners()
+        canvasBackground('white')
     }
+
+    useEffect(() => {
+        canvasBackground('white')
+    }, [canvasSize])
 
     const toastInfo = (message: string) => {
         toast.info(message, {
@@ -256,20 +270,37 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         }, 10 * 1000)
     }
 
+    const canvasBackground = (color: string) => {
+        const currentContext = canvasRef.current?.getContext('2d')
+        if(!currentContext){
+            return
+        }
+        currentContext.fillStyle = color
+        currentContext.fillRect(0, 0, canvasSize, canvasSize);
+
+    }
+
     const canvasSizeHandler = () => {
         const screenWidth = window.outerWidth
-        if(screenWidth < 580){
+        if(screenWidth < 540){
             setCanvasSize(Math.round(0.97 * screenWidth))
         }
         else{
-            setCanvasSize(550)
+            setCanvasSize(500)
         }
     }
 
     return (
         <>
-            <div id="canvasContainer">
-                <canvas height={canvasSize} width={canvasSize} ref={canvasRef} style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
+            <div id="canvasContainer" style={{ height: canvasSize }}>
+                <div>
+                    <canvas height={canvasSize} width={canvasSize} ref={canvasRef} color="white" className="sketchboardLayers" style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
+                </div>
+                <Collapse in={true}>
+                    <div className="sketchboardLayers" id="overlay" style={{ width: canvasSize, height: canvasSize }}>
+                        <p>HI</p>
+                    </div>
+                </Collapse>
             </div>
             <Modal
                 aria-labelledby="transition-modal-title"

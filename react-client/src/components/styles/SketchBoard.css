@@ -1,3 +1,16 @@
 canvas {
-    border: 1px solid black;
+    box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.8);
+    z-index: 1;
+}
+
+.sketchboardLayers {
+    position: absolute;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%)
+}
+
+#overlay {
+    background-color: rgba(25,25,25,0.8);
+    z-index: 2
 }
