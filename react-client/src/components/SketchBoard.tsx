@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState, memo } from 'react';
 import useStore from '../zustand/store';
+import useChatsStore from '../zustand/chats';
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
@@ -18,6 +19,13 @@ type Member = {
         name: string
         avatar: number
     }
+}
+
+type Message = {
+    socketID: string
+    sender: string
+    message: string
+    color: string
 }
 
 type HandleEventTypeProps = {
@@ -59,6 +67,7 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     const previousStrokeSent = useRef<number>(new Date().getTime())
     const wordChoices = useRef<Array<string>>([])
 
+    const [canvasSize, setCanvasSize] = useState<number>(550);
     const [open, setOpen] = useState<boolean>(false);
     
     const classes = useStyles();
@@ -67,8 +76,13 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         getSocket: state.getSocket
     }), []))
 
+    const addChat = useChatsStore(state => state.addChat)
+
     useEffect(() => {
         init()
+        return () => {
+            window.removeEventListener("resize", canvasSizeHandler)
+        }
     }, [])
 
     const init = () => {
@@ -88,21 +102,31 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
             console.log(member)
             // console.log(`${member.memberDetails.name} is choosing a word`)
         })
-        socket.on("start guessing", () => {
+        socket.on("start guessing", (wordLength: number) => {
+            console.log(wordLength)
+            // alert("manual")
             toastInfo('start guessing')
         })
-        socket.on("auto-selected", () => {
+        socket.on("auto-selected", (wordLength: number) => {
+            console.log(myTurn)
             setMyTurn(turn => {
+                console.log(turn)
                 if(turn){
                     setOpen(false)
                     timerForNextTurn(socket)
                 }
                 else{
+                    console.log(wordLength)
+                    // alert("auto")
                     toastInfo('start guessing')
                 }
                 return turn
             })
         })
+        socket.on("guesses", (message: Message) => {
+            addChat(message)
+        })
+        canvasSizeHandler()
         attachEventListeners()
     }
 
@@ -117,7 +141,9 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         });
     }
 
-    const attachEventListeners = (): void => {
+    const attachEventListeners = () => {
+        window.addEventListener("resize", canvasSizeHandler)
+
         const canvas = canvasRef.current
 
         canvas?.addEventListener('mousedown',  onMouseDown)
@@ -182,8 +208,8 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
                 getSocket().emit("drawing", { 
                     newCoordinates: coordinates, 
                     currentCoordinates: {
-                        x: position.current?.x,
-                        y: position.current?.y
+                        x: position.current?.x / canvasSize,
+                        y: position.current?.y / canvasSize
                     },
                     color
                 })
@@ -205,7 +231,7 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         currentContext.beginPath();
         
         if(currentCoordinates){
-            currentContext.moveTo(currentCoordinates.x, currentCoordinates.y);
+            currentContext.moveTo(currentCoordinates.x * canvasSize, currentCoordinates.y * canvasSize);
         }
         else{
             currentContext.moveTo(position.current.x, position.current.y);
@@ -227,13 +253,23 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         setTimeout(() => {
             setMyTurn(false)
             socket.emit("next turn")
-        }, 15 * 1000)
+        }, 10 * 1000)
+    }
+
+    const canvasSizeHandler = () => {
+        const screenWidth = window.outerWidth
+        if(screenWidth < 580){
+            setCanvasSize(Math.round(0.97 * screenWidth))
+        }
+        else{
+            setCanvasSize(550)
+        }
     }
 
     return (
         <>
             <div id="canvasContainer">
-                <canvas height={500} width={500} ref={canvasRef} style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
+                <canvas height={canvasSize} width={canvasSize} ref={canvasRef} style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
             </div>
             <Modal
                 aria-labelledby="transition-modal-title"

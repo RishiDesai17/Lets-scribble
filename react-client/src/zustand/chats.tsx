@@ -7,6 +7,7 @@ type State = {
 }
 
 type Message = {
+    socketID: string
     sender: string
     message: string
     color: string
