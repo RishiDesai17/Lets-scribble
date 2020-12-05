@@ -25,12 +25,7 @@ const Home: React.FC = (props) => {
     const createRoom = () => {
         const name = getName()
         const avatar = getAvatar()
-        if(name === ""){
-            toastError('Please enter a name')
-            return
-        }
-        if(name.length < 3 || name.length > 15){
-            toastError('Name should be 3-15 characters long')
+        if(!nameValidation(name)){
             return
         }
         const socket = io("/")
@@ -51,6 +46,10 @@ const Home: React.FC = (props) => {
     }
 
     const join = () => {
+        const name = getName()
+        if(!nameValidation(name)){
+            return
+        }
         const urlRegex = /^(http)s?:\/\/localhost:3000\/lobby\/([a-z0-9\-])\/?/
         if(!urlRegex.test(room.current)){
             toastError("Enter valid room URL")
@@ -58,6 +57,18 @@ const Home: React.FC = (props) => {
         }
         const roomID = room.current.split("/")[4]
         history.replace(`/lobby/${roomID}`)
+    }
+
+    const nameValidation = (name: string) => {
+        if(name === ""){
+            toastError('Please enter a name')
+            return false
+        }
+        else if(name.length < 3 || name.length > 15){
+            toastError('Name should be 3-15 characters long')
+            return false
+        }
+        return true
     }
 
     const toastError = (message: string) => {
