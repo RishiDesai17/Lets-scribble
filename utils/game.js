@@ -114,7 +114,7 @@ const turn = async({ io, socket, socketID, roomID, prevWord }) => {
     }
     setTimeout(() => {
         autoSelect({ io, roomID, word: words[0], socketID })
-    }, 8000)
+    }, 7500)
 }
 
 const autoSelect = async({ io, roomID, word, socketID }) => {
@@ -139,9 +139,8 @@ exports.nextTurn = async({ io, socket }) => {
         if(turnIndex === sockets.length - 1){
             turnIndex = 0
             let { numRounds, currentRound } = roundData
-            console.log(numRounds, currentRound, numRounds === currentRound)
             if(numRounds === currentRound){
-                const scores = scoreManagement({ io, roomID, sendScores: true })
+                const scores = scoreManagement({ io, socket, roomID, sendScores: true })
                 io.sockets.in(roomID).emit("game over", scores)
                 return
             }
@@ -152,7 +151,7 @@ exports.nextTurn = async({ io, socket }) => {
             turnIndex += 1
         }
         roundData.turn = sockets[turnIndex]
-        scoreManagement({ io, roomID, sendScores: true })
+        scoreManagement({ io, socket, roomID, sendScores: true })
         turn({ io, socketID: sockets[turnIndex], roomID, prevWord: roundData.word })
         roundData.word = undefined
         await redis.set(roomID + " round", JSON.stringify(roundData))
@@ -162,15 +161,20 @@ exports.nextTurn = async({ io, socket }) => {
     }
 }
 
-const scoreManagement = ({ io, roomID, sendScores }) => {
+const scoreManagement = ({ io, socket, roomID, sendScores }) => {
     let roundWiseScores = []
+    let scoreSum = 0
     for(let key in io.sockets.adapter.rooms[roomID].sockets){
         const socketData = io.sockets.connected[key]
+        const currentScore = socketData.currentScore
         roundWiseScores.push({
             socketID: socketData.id,
             memberDetails: socketData.memberDetails,
-            score: socketData.currentScore
+            score: currentScore
         })
+        if(currentScore){
+            scoreSum += currentScore
+        }
         io.sockets.connected[key].currentScore = undefined
     }
     roundWiseScores = roundWiseScores.sort((a, b) => {
@@ -181,6 +185,9 @@ const scoreManagement = ({ io, roomID, sendScores }) => {
     })
     if(sendScores){
         io.sockets.in(roomID).emit("round wise scores", roundWiseScores)
+        const drawerScore = Math.floor(scoreSum / roundWiseScores.length)
+        socket.score += drawerScore
+        socket.emit("your score", drawerScore)
     }
     else{
         return roundWiseScores
