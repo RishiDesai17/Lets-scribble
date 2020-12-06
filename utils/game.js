@@ -54,13 +54,15 @@ exports.startGuessing = async({ socket, word, roomID }) => {
     try{
         const roundData = JSON.parse(await redis.get(roomID + " round"))
         console.log(roundData)
-        await redis.set(roomID + " round", JSON.stringify({
-            ...roundData,
-            word,
-            startTime: new Date(),
-            turn: socket.id
-        }))
-        socket.broadcast.to(roomID).emit("start guessing", word.length)
+        if(roundData !== null && !roundData.word) {
+            await redis.set(roomID + " round", JSON.stringify({
+                ...roundData,
+                word,
+                startTime: new Date(),
+                turn: socket.id
+            }))
+            socket.broadcast.to(roomID).emit("start guessing", word.length)
+        }
     }
     catch(err){
         console.log(err)
