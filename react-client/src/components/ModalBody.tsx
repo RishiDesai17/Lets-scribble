@@ -2,7 +2,7 @@ import React, { useRef, useCallback } from 'react';
 import useStore from '../zustand/store';
 import Avatars from './Avatars';
 import { TextField, Button } from '@material-ui/core';
-import { toast } from 'react-toastify';
+import { toastError } from './Toast';
 import './styles/ModalBody.css';
 
 type Props = {
@@ -24,17 +24,6 @@ const ModalBody: React.FC<Props> = ({ modalHandler }) => {
             return
         }
         modalHandler()
-    }
-
-    const toastError = (message: string) => {
-        toast.error(message, {
-            position: "top-center",
-            autoClose: 2000,
-            closeOnClick: true,
-            hideProgressBar: true,
-            pauseOnHover: true,
-            draggable: true
-        });
     }
 
     return (

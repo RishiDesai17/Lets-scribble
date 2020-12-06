@@ -8,7 +8,7 @@ import { Modal, Backdrop, Fade, Grid } from '@material-ui/core';
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { useHistory, useParams } from 'react-router-dom';
 import io from 'socket.io-client';
-import { toast } from "react-toastify";
+import { toastError } from "../components/Toast";
 import './styles/Lobby.css';
 
 type RouteParams = {
@@ -129,35 +129,13 @@ const Lobby: React.FC = (props) => {
         })
 
         socket.on("invalid room", () => {
-            toast.error('Invalid Room', {
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true
-            });
+            toastError('Invalid Room')
             history.replace("/")
         })
     }
 
     const socketFns = () => {
         const socket = getSocket()
-
-        socket.on("game over", () => {
-            toast.info('Game over', {
-                position: "top-center",
-                autoClose: 3000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true
-            });
-            socket.disconnect()
-            reset()
-            history.replace("/")
-            clearChats()
-        })
 
         socket.on("new member", (member: Member) => {
             addMember(member)
@@ -168,14 +146,7 @@ const Lobby: React.FC = (props) => {
         })
 
         socket.on("something broke", () => {
-            toast.error('Something went wrong, please try again later', {
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true
-            });
+            toastError('Something went wrong, please try again later')
         })
     }
 

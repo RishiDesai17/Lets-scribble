@@ -4,7 +4,7 @@ import useStore from '../zustand/store';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
 import { Card, CardContent, TextField, Button, Grid } from '@material-ui/core';
-import { toast } from 'react-toastify';
+import { toastError } from '../components/Toast';
 import "./styles/Home.css";
 
 const Home: React.FC = (props) => {
@@ -69,17 +69,6 @@ const Home: React.FC = (props) => {
             return false
         }
         return true
-    }
-
-    const toastError = (message: string) => {
-        toast.error(message, {
-            position: "top-center",
-            autoClose: 2000,
-            closeOnClick: true,
-            hideProgressBar: true,
-            pauseOnHover: true,
-            draggable: true
-        });
     }
 
     return (
