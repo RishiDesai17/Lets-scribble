@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import useStore from '../zustand/store';
-import useChatsStore from '../zustand/chats';
 import GameSettings from '../components/GameSettings';
 import LobbyMembers from '../components/LobbyMembers';
 import ModalBody from '../components/ModalBody';
@@ -55,7 +54,6 @@ const Lobby: React.FC = (props) => {
         addMember,
         removeMember,
         setIsHost,
-        reset,
         
         getSocket,
         getRoom,
@@ -72,15 +70,12 @@ const Lobby: React.FC = (props) => {
         addMember: state.addMember,
         removeMember: state.removeMember,
         setIsHost: state.setIsHost,
-        reset: state.reset,
 
         getSocket: state.getSocket,
         getRoom: state.getRoom,
         getName: state.getName,
         getAvatar: state.getAvatar
     }), []))
-
-    const clearChats = useChatsStore(state => state.clearChats)
 
     const [modalOpen, setModalOpen] = useState<boolean>(false)
 
@@ -174,7 +169,7 @@ const Lobby: React.FC = (props) => {
                     </Grid>
                 }
                 <Grid item md={isHost ? 8 : 12} sm={isHost ? 8 : 12} xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
-                    <LobbyMembers members={members} isHost={isHost} socketID={getSocket().id} />
+                    {getName() !== "" && <LobbyMembers members={members} isHost={isHost} socketID={getSocket().id} />}
                 </Grid>
             </Grid>
             <Modal

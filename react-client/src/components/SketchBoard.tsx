@@ -32,7 +32,7 @@ type ReceiveStrokesProps = {
 }
 
 type Props = {
-    color: string
+    getColor: () => string
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -49,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const Sketchboard: React.FC<Props> = ({ color }) => {
+const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
@@ -73,11 +73,13 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
         clearChats: state.clearChats
     }), []))
 
-    const { myTurn, setMyTurn, getMyTurn, setSelectedWord } = useGameStore(useCallback(state => ({
+    const { myTurn, setMyTurn, getMyTurn, roundLength, setSelectedWord, startCountdown } = useGameStore(useCallback(state => ({
         myTurn: state.myTurn,
         setMyTurn: state.setMyTurn,
         getMyTurn: state.getMyTurn,
-        setSelectedWord: state.setSelectedWord
+        roundLength: state.roundLength,
+        setSelectedWord: state.setSelectedWord,
+        startCountdown: state.startCountdown
     }), []))
 
     useEffect(() => {
@@ -112,6 +114,7 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
         socket.on("start guessing", () => {
             toastInfo('start guessing')
             setOverlay(false)
+            startCountdown()
         })
         
         socket.on("auto-selected", () => {
@@ -125,6 +128,7 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
                 toastInfo('start guessing')
                 setOverlay(false)
             }
+            startCountdown()
         })
         
         socket.on("guesses", (message: Message) => {
@@ -141,7 +145,6 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
         
         canvasSizeHandler()
         attachEventListeners()
-        canvasBackground('white')
     }
 
     useEffect(() => {
@@ -205,6 +208,7 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
             console.log(coordinates)
         }
         if(toDraw){
+            const color = getColor()
             draw({
                 x: coordinates.x,
                 y: coordinates.y
@@ -253,6 +257,7 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
         socket.emit("chosen word", choice)
         timerForNextTurn(socket)
         setOpen(false)
+        startCountdown()
         if(myTurn){
             setSelectedWord(choice)
         }
@@ -262,7 +267,7 @@ const Sketchboard: React.FC<Props> = ({ color }) => {
         setTimeout(() => {
             setMyTurn(false)
             socket.emit("next turn")
-        }, 8 * 1000)
+        }, roundLength * 1000)
     }
 
     const canvasBackground = (color: string) => {

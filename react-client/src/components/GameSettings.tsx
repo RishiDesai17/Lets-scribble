@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     InputLabel,
     MenuItem,
@@ -8,6 +8,7 @@ import {
     Card,
     CardContent
 } from "@material-ui/core";
+import useGameStore from '../zustand/game';
 import './styles/GameSettings.css';
 
 type Settings = {
@@ -21,7 +22,10 @@ type Props = {
 }
 
 const GameSettings: React.FC<Props> = ({ numMembers, startGame }) => {
-    const [roundLength, setRoundLength] = useState<number>(30)
+    const { roundLength, setRoundLength } = useGameStore(useCallback(state => ({
+        roundLength: state.roundLength,
+        setRoundLength: state.setRoundLength
+    }), []))
     const [numRounds, setNumRounds] = useState<number>(1)
 
     return (

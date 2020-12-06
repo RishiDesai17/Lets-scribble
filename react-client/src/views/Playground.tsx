@@ -53,6 +53,10 @@ const Playground: React.FC = (props) => {
         color.current = selectedColor
     }
 
+    const getColor = () => {
+        return color.current
+    }
+
     return (
         <div id="playgroundBackground">
             <h1 id="playgroundTitle">Playground</h1>
@@ -71,7 +75,7 @@ const Playground: React.FC = (props) => {
                     ))}
                 </Grid>
                 <Grid item md={8} sm={12} xs={12}>
-                    <SketchBoard color={color.current} />
+                    <SketchBoard getColor={getColor} />
                     {myTurn && 
                         <Palette setColorInParent={setColor} />
                     }
