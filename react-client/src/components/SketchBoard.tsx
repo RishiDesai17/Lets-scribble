@@ -103,12 +103,14 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             wordChoices.current = words
             setOpen(true)
             setMyTurn(true)
+            clearCanvas()
         })
         
         socket.on("someone choosing word", (name: string) => {
             overlayContent.current = `${name} is choosing a word`
             setOverlay(true)
             setMyTurn(false)
+            clearCanvas()
         })
         
         socket.on("start guessing", () => {
@@ -288,6 +290,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         else{
             setCanvasSize(500)
         }
+    }
+
+    const clearCanvas = () => {
+        const currentContext = canvasRef.current?.getContext('2d')
+        if(!currentContext) return
+        currentContext.clearRect(0, 0, canvasSize, canvasSize);
+        canvasBackground('white')
     }
 
     return (
