@@ -149,7 +149,7 @@ const deleteRoom = async({ roomID, socket }) => {
     try{
         redis.del(roomID)
         redis.del(roomID + " round")
-        Game.findByIdAndDelete(roomID)
+        await Game.findByIdAndDelete(roomID)
     }
     catch(err){
         console.log(err)

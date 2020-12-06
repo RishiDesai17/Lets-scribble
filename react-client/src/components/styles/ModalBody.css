@@ -4,11 +4,13 @@
     align-items: center;
     justify-content: center;
 }
-#avatars{
+
+#avatars {
     text-align: center;
     width: 700px;
 }
-#submit{
+
+#submit {
     background-color: green;
     color: white;
     margin-top: 15px;

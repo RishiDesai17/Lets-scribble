@@ -1,46 +1,17 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import useStore from '../zustand/store';
+import useGameStore from '../zustand/game';
 import useChatsStore from '../zustand/chats';
 import GuessInput from './GuessInput';
+import { Card, CardContent } from '@material-ui/core';
 import './styles/Chatbox.css';
 
-type Props = {
-    myTurn: boolean
-}
+const Chatbox: React.FC = () => {
+    const getSocket = useStore(useCallback(state => state.getSocket, []))
 
-type Message = {
-    sender: string
-    message: string
-    color: string
-}
+    const myTurn = useGameStore(useCallback(state => state.myTurn, []))
 
-const Chatbox: React.FC<Props> = ({ myTurn }) => {
-    // const [chats, setChats] = useState<Array<Message>>([])
-
-    const { getSocket } = useStore(useCallback(state => ({
-        getSocket: state.getSocket
-    }), []))
-
-    const { chats, addChat } = useChatsStore(state => ({
-        chats: state.chats,
-        addChat: state.addChat
-    }))
-
-    useEffect(() => {
-        // alert("init")
-        const socket = getSocket()
-        init(socket)
-        return () => {
-            socket.off("guesses")
-        }
-    }, [])
-
-    const init = (socket: SocketIOClient.Socket) => {
-        // const socket = getSocket()
-        socket.on("guesses", (message: Message) => {
-            addChat(message)
-        })
-    }
+    const chats = useChatsStore(useCallback(state => state.chats, []))
 
     const submitGuess = (e: React.FormEvent, guess: string) => { 
         e.preventDefault()
@@ -48,20 +19,22 @@ const Chatbox: React.FC<Props> = ({ myTurn }) => {
     }
 
     return (
-        <div id="chatboxContainer">
-            <div id="chatbox">
-                {chats.map((chat, index) => (
-                    <div className="guessContainer" key={index}>
-                        <p style={{ color: chat.color }}><b>{chat.sender === getSocket().id ? "You" : chat.sender}</b>{": " + chat.message}</p>
-                    </div>
-                ))}
-            </div>
-            {!myTurn && 
-                <div>
-                    <GuessInput submitGuess={submitGuess} />
+        <Card>
+            <CardContent id="chatboxContainer">
+                <div id="chatbox" style={{ height: myTurn ? '100%' : '85%' }}>
+                    {chats.map((chat, index) => (
+                        <div className="guessContainer" key={index}>
+                            <p style={{ color: chat.color }}><b>{chat.socketID === getSocket().id ? "You" : chat.sender}</b>{": " + chat.message}</p>
+                        </div>
+                    ))}
                 </div>
-            }
-        </div>
+                {!myTurn && 
+                    <div>
+                        <GuessInput submitGuess={submitGuess} />
+                    </div>
+                }
+            </CardContent>
+        </Card>
     )
 }
 

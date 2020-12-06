@@ -35,8 +35,7 @@ const newGame = async({ _id, members, round_length, numRounds, socket }) => {
     try {
         await new Game({
             _id,
-            sockets: Object.keys(members),
-            numRounds
+            sockets: Object.keys(members)
         }).save();
         await redis.set(_id + " round", JSON.stringify({ 
             round_length,
@@ -108,7 +107,6 @@ const turn = async({ io, socket, socketID, roomID, prevWord }) => {
     }
     if(prevWord) {
         io.sockets.in(roomID).emit("guesses", {
-            // socketID: "",
             sender: "Server",
             message: `Correct answer: ${prevWord}`,
             color: 'black'

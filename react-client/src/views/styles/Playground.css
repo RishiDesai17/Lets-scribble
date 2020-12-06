@@ -1,3 +1,23 @@
+#playgroundBackground {
+    background-image: url("../../images/lets_scribble_bg.png");
+    background-size: 200px 200px;
+    min-height: 100vh;
+    height: 100%;
+    box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.6);
+}
+
+#playgroundTitle {
+    color: white;
+    font-family: 'Rock Salt', cursive;
+    margin-top: 0;
+}
+
+#gameBarContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
 #drawerButton {
     position: absolute;
     right: 20px;

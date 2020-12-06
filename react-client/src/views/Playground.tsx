@@ -1,8 +1,10 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import useStore from '../zustand/store';
+import useGameStore from '../zustand/game';
 import SketchBoard from '../components/SketchBoard';
 import Palette from '../components/Palette';
 import Chatbox from '../components/Chatbox';
+import GameBar from '../components/GameBar';
 import { Grid, Button, Drawer } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import './styles/Playground.css';
@@ -10,17 +12,16 @@ import './styles/Playground.css';
 const Playground: React.FC = (props) => {
     const color = useRef<string>("")
 
-    const [myTurn, setMyTurn] = useState<boolean>(false)
     const [chatDrawer, setChatDrawer] = useState<boolean>(false)
     const [smallScreenView, setSmallScreenView] = useState<boolean>(false)
 
-    const members = useStore(state => state.members)
+    const members = useStore(useCallback(state => state.members, []))
+
+    const getRoom = useStore(useCallback(state => state.getRoom, []))
+
+    const myTurn = useGameStore(useCallback(state => state.myTurn, []))
 
     const history = useHistory()
-
-    const { getRoom } = useStore(useCallback(state => ({
-        getRoom: state.getRoom
-    }), []))
 
     useEffect(() => {
         init()
@@ -52,15 +53,16 @@ const Playground: React.FC = (props) => {
         color.current = selectedColor
     }
 
-    const getColor = () => {
-        return color.current
-    }
-
     return (
-        <>
-            <h1>Playground</h1>
+        <div id="playgroundBackground">
+            <h1 id="playgroundTitle">Playground</h1>
+            <div id="gameBarContainer">
+                <div style={{ width: '85%' }}>
+                    <GameBar />
+                </div>
+            </div>
             <Grid container>
-                <Grid item md={2} sm={2} xs={12}>
+                <Grid item md={2} sm={12} xs={12} style={{ width: '90%' }}>
                     {members.map(member => (
                         <>
                             <p>{member.memberDetails.name}</p>
@@ -68,31 +70,35 @@ const Playground: React.FC = (props) => {
                         </>
                     ))}
                 </Grid>
-                <Grid item md={8} sm={10} xs={12}>
-                    <SketchBoard getColor={getColor} setMyTurn={setMyTurn} myTurn={myTurn} />
-                    {myTurn && <Palette setColorInParent={setColor} />}
+                <Grid item md={8} sm={12} xs={12}>
+                    <SketchBoard color={color.current} />
+                    {myTurn && 
+                        <Palette setColorInParent={setColor} />
+                    }
                 </Grid>
                 {!smallScreenView && 
-                    <Grid item md={2} sm={3} xs={6}>
-                        <Chatbox myTurn={myTurn} />
+                    <Grid item md={2}>
+                        <div style={{ width: '95%' }}>
+                            <Chatbox />
+                        </div>
                     </Grid>
                 }
             </Grid>
             {smallScreenView && 
                 <div>
                     <Button id="drawerButton" onClick={() => setChatDrawer(true)}>
-                        <svg width="2em" height="2em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="2em" height="2em" viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M14 0a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
                         </svg>
                     </Button>
                     <Drawer anchor="right" open={chatDrawer} onClose={() => setChatDrawer(false)}>
                         <div id="drawerChatbox">
-                            <Chatbox myTurn={myTurn} />
+                            <Chatbox />
                         </div>
                     </Drawer>
                 </div>
             }
-        </>
+        </div>
     )
 }
 
