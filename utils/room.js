@@ -147,11 +147,9 @@ const allotNewHost = async({ newHost, roomData, socket }) => {
 
 const deleteRoom = async({ roomID, socket }) => {
     try{
-        Promise.all([
-            await redis.del(roomID),
-            await redis.del(roomID + " round"),
-            await Game.findByIdAndDelete(roomID)
-        ])
+        redis.del(roomID)
+        redis.del(roomID + " round")
+        Game.findByIdAndDelete(roomID)
     }
     catch(err){
         console.log(err)

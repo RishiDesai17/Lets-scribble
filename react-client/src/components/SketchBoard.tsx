@@ -11,14 +11,6 @@ type Coordinates = {
     y: number
 }
 
-type Member = {
-    socketID: string
-    memberDetails: {
-        name: string
-        avatar: number
-    }
-}
-
 type Message = {
     socketID: string
     sender: string
@@ -64,8 +56,10 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     const position = useRef<Coordinates>({ x: 0, y: 0 })
     const previousStrokeSent = useRef<number>(new Date().getTime())
     const wordChoices = useRef<Array<string>>([])
+    const overlayContent = useRef<string | Array<string>>("")
 
     const [canvasSize, setCanvasSize] = useState<number>(500);
+    const [overlay, setOverlay] = useState<boolean>(false);
     const [open, setOpen] = useState<boolean>(false);
     
     const classes = useStyles();
@@ -92,23 +86,29 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
             return
         }
         const socket = getSocket()
+        
         socket.on("receiveStrokes", ({ newCoordinates, currentCoordinates, color }: ReceiveStrokesProps) => {
             draw(newCoordinates, color, currentCoordinates)
         })
+        
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
             setOpen(true)
             setMyTurn(true)
         })
-        socket.on("someone choosing word", (member: Member) => {
-            console.log(member)
-            // console.log(`${member.memberDetails.name} is choosing a word`)
+        
+        socket.on("someone choosing word", (name: string) => {
+            overlayContent.current = `${name} is choosing a word`
+            setOverlay(true)
         })
+        
         socket.on("start guessing", (wordLength: number) => {
             console.log(wordLength)
             // alert("manual")
             toastInfo('start guessing')
+            setOverlay(false)
         })
+        
         socket.on("auto-selected", (wordLength: number) => {
             console.log(myTurn)
             setMyTurn(turn => {
@@ -121,13 +121,16 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
                     console.log(wordLength)
                     // alert("auto")
                     toastInfo('start guessing')
+                    setOverlay(false)
                 }
                 return turn
             })
         })
+        
         socket.on("guesses", (message: Message) => {
             addChat(message)
         })
+        
         socket.on("game over", () => {
             toastInfo('Game over')
             socket.disconnect()
@@ -135,6 +138,7 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
             // history.replace("/")
             clearChats()
         })
+        
         canvasSizeHandler()
         attachEventListeners()
         canvasBackground('white')
@@ -267,7 +271,7 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
         setTimeout(() => {
             setMyTurn(false)
             socket.emit("next turn")
-        }, 10 * 1000)
+        }, 15 * 1000)
     }
 
     const canvasBackground = (color: string) => {
@@ -293,14 +297,14 @@ const Sketchboard: React.FC<Props> = ({ getColor, myTurn, setMyTurn }) => {
     return (
         <>
             <div id="canvasContainer" style={{ height: canvasSize }}>
-                <div>
-                    <canvas height={canvasSize} width={canvasSize} ref={canvasRef} color="white" className="sketchboardLayers" style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
-                </div>
-                <Collapse in={true}>
+                <Collapse in={overlay}>
                     <div className="sketchboardLayers" id="overlay" style={{ width: canvasSize, height: canvasSize }}>
-                        <p>HI</p>
+                        <p style={{ color: 'white' }}>{typeof overlayContent.current === "string" ? overlayContent.current : ""}</p>
                     </div>
                 </Collapse>
+                <div>
+                    <canvas height={canvasSize} width={canvasSize} ref={canvasRef} style={{ pointerEvents: myTurn ? 'auto' : 'none' }}></canvas>
+                </div>
             </div>
             <Modal
                 aria-labelledby="transition-modal-title"
