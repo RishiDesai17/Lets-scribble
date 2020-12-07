@@ -38,7 +38,8 @@ const Home: React.FC = (props) => {
                 memberDetails: { 
                     name,
                     avatar: avatar + 1
-                }
+                },
+                score: 0
             }])
             history.replace(`/lobby/${roomID}`)
         })
@@ -50,7 +51,11 @@ const Home: React.FC = (props) => {
         if(!nameValidation(name)){
             return
         }
-        const urlRegex = /^(http)s?:\/\/localhost:3000\/lobby\/([a-z0-9\-])\/?/
+        let { protocol, hostname, port } = window.location
+        if(window.location.port !== ""){
+            hostname += ":" + port
+        }
+        const urlRegex = new RegExp(`^${protocol}\/\/${hostname}\/lobby\/([a-z0-9\-])\/?`)
         if(!urlRegex.test(room.current)){
             toastError("Enter valid room URL")
             return
@@ -79,7 +84,7 @@ const Home: React.FC = (props) => {
                     <CardContent>
                         <form noValidate autoComplete="off">
                             <div id="name-input-container">
-                                <TextField id="filled-basic" label="Enter Name" variant="filled" defaultValue={getName()} onChange={e => setName(e.target.value)} />
+                                <TextField id="filled-basic" label="Enter Name" variant="filled" defaultValue={getName()} onChange={e => setName(e.target.value.trim())} />
                             </div>
                             <Avatars />
                             <div id="buttons-container">

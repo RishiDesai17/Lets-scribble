@@ -146,6 +146,7 @@ const Lobby: React.FC = (props) => {
 
         socket.on("invalid room", () => {
             toastError('Invalid Room')
+            socket.disconnect()
             history.replace("/")
         })
     }

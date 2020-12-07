@@ -29,7 +29,7 @@ const ModalBody: React.FC<Props> = ({ modalHandler }) => {
     return (
         <>
             <form noValidate autoComplete="off" id="modalContainer" onSubmit={e => submit(e)}>
-                <TextField id="standard-basic" label="Enter name" defaultValue={getName()} onChange={e => setName(e.target.value)} />
+                <TextField id="standard-basic" label="Enter name" defaultValue={getName()} onChange={e => setName(e.target.value.trim())} />
                 <div id="avatars">
                     <Avatars />
                 </div>
