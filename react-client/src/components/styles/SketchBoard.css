@@ -14,3 +14,7 @@ canvas {
     background-color: rgba(25,25,25,0.8);
     z-index: 2
 }
+
+#chooseWordTitle {
+    font-family: 'Rock Salt', cursive;
+}

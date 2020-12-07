@@ -3,7 +3,7 @@ import useStore from '../zustand/store';
 import useChatsStore from '../zustand/chats';
 import useGameStore from '../zustand/game';
 import { makeStyles } from "@material-ui/core/styles";
-import { Modal, Backdrop, Fade, Collapse } from "@material-ui/core";
+import { Modal, Backdrop, Fade, Collapse, Button } from "@material-ui/core";
 import { toastInfo } from './Toast';
 import './styles/SketchBoard.css';
 
@@ -324,12 +324,9 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             >
                 <Fade in={open}>
                     <div className={classes.paper}>
-                        <h2 id="transition-modal-title">Transition modal</h2>
-                        <p id="transition-modal-description">
-                            react-transition-group animates me.
-                        </p>
+                        <h2 id="chooseWordTitle">Choose a word!</h2>
                         {wordChoices.current.map(word => (
-                            <button onClick={() => chooseWord(word)}>{word}</button>
+                            <Button variant="contained" color="primary" style={{ marginRight: 3, marginLeft: 3 }} onClick={() => chooseWord(word)}>{word}</Button>
                         ))}
                     </div>
                 </Fade>
