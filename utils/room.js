@@ -29,7 +29,6 @@ exports.createRoom = async ({ socket, host_name, avatar }) => {
 exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
     try{
         if(!uuid.validate(roomID)){
-            console.log("here!")
             socket.emit("invalid room")
             return;
         }
@@ -93,6 +92,7 @@ const addMemberToDB = async({ roomID, socket }) => {
 exports.disconnect = async({ io, socket }) => {
     try{
         const roomID = socket.roomID
+        if(!roomID) return
         socket.broadcast.to(roomID).emit("member left")
         let roomData = JSON.parse(await redis.get(roomID))
         let members;
