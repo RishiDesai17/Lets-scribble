@@ -1,5 +1,6 @@
 const redis = require('../infra/redis');
 const Game = require('../models/game');
+const { words } = require('../words');
 
 exports.startGame = async({ io, socket, round_length, numRounds }) => {
     try{
@@ -92,8 +93,18 @@ exports.validateWord = async({ io, socket, word }) => {
 }
 
 const turn = async({ io, socket, socketID, roomID, prevWord }) => {
-    const words = ['cup', 'plate', 'glass']
-    io.sockets.in(socketID).emit("turn", words)
+    numTotalWords = words.length
+    const selectedIndices = new Set()
+    const selectedWords = []
+    for(let i = 0; i < 3; i++){
+        let randomIndex = Math.floor(Math.random() * numTotalWords)
+        while(selectedIndices.has(randomIndex)){
+            randomIndex = Math.floor(Math.random() * numTotalWords)
+        }
+        selectedIndices.add(randomIndex)
+        selectedWords.push(words[randomIndex])
+    }
+    io.sockets.in(socketID).emit("turn", selectedWords)
     const sockets = io.sockets.connected
     if(socket) {
         socket.broadcast.to(roomID).emit("someone choosing word", sockets[socketID].memberDetails.name)
@@ -113,7 +124,7 @@ const turn = async({ io, socket, socketID, roomID, prevWord }) => {
         })
     }
     setTimeout(() => {
-        autoSelect({ io, roomID, word: words[0], socketID })
+        autoSelect({ io, roomID, word: selectedWords[0], socketID })
     }, 7500)
 }
 
