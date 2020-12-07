@@ -162,34 +162,34 @@ exports.nextTurn = async({ io, socket }) => {
 }
 
 const scoreManagement = ({ io, socket, roomID, sendScores }) => {
-    let roundWiseScores = []
-    let scoreSum = 0
+    let updatedScores = []
+    let scoreSum = 0   // score sum for current round, useed to calculate score for member who was drawing
     for(let key in io.sockets.adapter.rooms[roomID].sockets){
         const socketData = io.sockets.connected[key]
-        const currentScore = socketData.currentScore
-        roundWiseScores.push({
+        updatedScores.push({
             socketID: socketData.id,
             memberDetails: socketData.memberDetails,
-            score: currentScore
+            score: socketData.score
         })
+        const currentScore = socketData.currentScore
         if(currentScore){
             scoreSum += currentScore
         }
         io.sockets.connected[key].currentScore = undefined
     }
-    roundWiseScores = roundWiseScores.sort((a, b) => {
+    updatedScores = updatedScores.sort((a, b) => {
         if(a.score > b.score){
-            return 1
+            return -1    // arrange scores in descending order
         }
-        return -1
+        return 1
     })
     if(sendScores){
-        io.sockets.in(roomID).emit("round wise scores", roundWiseScores)
-        const drawerScore = Math.floor(scoreSum / roundWiseScores.length)
+        io.sockets.in(roomID).emit("updated scores", updatedScores)
+        const drawerScore = Math.floor(scoreSum / updatedScores.length)
         socket.score += drawerScore
         socket.emit("your score", drawerScore)
     }
     else{
-        return roundWiseScores
+        return updatedScores
     }
 }
