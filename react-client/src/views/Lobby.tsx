@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import useStore from '../zustand/store';
+import useGameStore from '../zustand/game';
 import GameSettings from '../components/GameSettings';
 import LobbyMembers from '../components/LobbyMembers';
 import ModalBody from '../components/ModalBody';
@@ -20,6 +21,7 @@ type Member = {
         name: string
         avatar: number
     }
+    score: number
 }
 
 type Settings = {
@@ -77,6 +79,11 @@ const Lobby: React.FC = (props) => {
         getAvatar: state.getAvatar
     }), []))
 
+    const { setSelectedWord, startCountdown } = useGameStore(useCallback(state => ({ 
+        setSelectedWord: state.setSelectedWord,
+        startCountdown: state.startCountdown
+    }), []))
+
     const [modalOpen, setModalOpen] = useState<boolean>(false)
 
     const history = useHistory()
@@ -105,8 +112,22 @@ const Lobby: React.FC = (props) => {
         const socket = io("/")
         setSocket(socket)
         
-        socket.on("members in this room", (membersInThisRoom: Member[]) => {
+        socket.on("members in this room", (membersInThisRoom: Member[], roundDetails: { wordLength: number, startTime: string }) => {
             setMembers(membersInThisRoom)
+            if(roundDetails){
+                const { wordLength, startTime } = roundDetails
+                if(wordLength === 0){
+                    history.replace("/playground")
+                    return
+                }
+                let word = ""
+                for(let i = 0; i < wordLength; i++){
+                    word += "_ "
+                }
+                setSelectedWord(word)
+                startCountdown(startTime)
+                history.replace("/playground")
+            }
         })
 
         socket.emit("join room", { 

@@ -9,7 +9,7 @@ type State = {
     setMyTurn: (myTurn: boolean) => void
     setSelectedWord: (selectedWord: string) => void
     setRoundLength: (roundLength: number) => void
-    startCountdown: () => void
+    startCountdown: (startFrom?: string) => void
     getMyTurn: () => boolean
     resetGameStore: () => void
 }
@@ -26,8 +26,14 @@ const useStore = create<State>((set, get) => ({
     setMyTurn: (myTurn: boolean) => set({ myTurn }),
     setSelectedWord: (selectedWord: string) => set({ selectedWord }),
     setRoundLength: (roundLength: number) => set({ roundLength, timeRemaining: roundLength }),
-    startCountdown: () => {
-        set({ timeRemaining: get().roundLength })
+    startCountdown: (startFrom) => {
+        if(startFrom){
+            const timeRemaining = get().roundLength - Math.floor((new Date().getTime() - Date.parse(startFrom)) / 1000)
+            set({ timeRemaining })
+        }
+        else{
+            set({ timeRemaining: get().roundLength })
+        }
         const countdown = setInterval(() => {
             const timeRemaining = get().timeRemaining
             if(timeRemaining === 0) {

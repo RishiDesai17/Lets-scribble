@@ -51,15 +51,24 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
         for(let key in io.sockets.adapter.rooms[roomID].sockets){
             usersInThisRoom.push({
                 socketID: key,
-                memberDetails: io.sockets.connected[key].memberDetails
+                memberDetails: io.sockets.connected[key].memberDetails,
+                score: io.sockets.connected[key].score
             })
         }
         console.log(usersInThisRoom)
-        socket.emit("members in this room", usersInThisRoom)
-        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, memberDetails })
+        socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, memberDetails, score: 0 })
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
-            socket.emit("game started")
+            const { word, startTime, turn } = JSON.parse(await redis.get(roomID + " round"))
+            console.log(turn)
+            const wordLength = 0
+            if(word){
+                wordLength = word.length
+            }
+            socket.emit("members in this room", usersInThisRoom, { wordLength, startTime })
+        }
+        else{
+            socket.emit("members in this room", usersInThisRoom)
         }
     }
     catch(err){
