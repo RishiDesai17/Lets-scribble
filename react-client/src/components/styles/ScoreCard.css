@@ -1,0 +1,67 @@
+#scoreCardContainer {
+    display: flex;
+    justify-content: center;
+}
+
+#scoreCard {
+    margin-bottom: 18px;
+    width: 95%;
+}
+
+#scoreCardContent {
+    overflow-y: auto;
+    height: 85%;
+}
+
+.scoreCardBigScreen {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.scoreCardSmallScreen {
+    min-width: 80px;
+}
+
+.scoreCardAvatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 23px;
+}
+
+.scoreCardName {
+    margin: 0 0 4px;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.score {
+    margin: 4px 0 0;
+    text-align: right;
+}
+
+ @media screen and (max-width: 960px) {
+    #scoreCardContent {
+        display: flex;
+        flex-direction: row;
+        height: 90px;
+        overflow-x: auto;
+        margin: 0;
+    }
+
+    #scoreCard {
+        width: 85%;
+    }
+
+    .scoreCardName {
+        text-align: center;
+    }
+
+    .score {
+        text-align: center;
+        margin: 3px 0 0;
+    }    
+}

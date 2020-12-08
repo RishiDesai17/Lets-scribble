@@ -15,3 +15,9 @@
     color: white;
     margin-top: 15px;
 }
+
+@media screen and (max-width: 750px) {
+    #avatars {
+        width: 85%;
+    }
+}

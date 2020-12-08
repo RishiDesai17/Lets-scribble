@@ -28,3 +28,15 @@
     width: 250px;
     height: 100vh;
 }
+
+@media screen and (max-width: 500px) {
+    #drawerButton {
+        right: 0;
+        top: 16px;
+        font-size: 12.5px;
+    }
+
+    #playgroundTitle {
+        font-size: 27px;
+    }
+}

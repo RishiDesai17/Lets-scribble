@@ -3,6 +3,7 @@ import useStore from '../zustand/store';
 import useGameStore from '../zustand/game';
 import SketchBoard from '../components/SketchBoard';
 import Palette from '../components/Palette';
+import ScoreCard from '../components/ScoreCard';
 import Chatbox from '../components/Chatbox';
 import GameBar from '../components/GameBar';
 import { Grid, Button, Drawer } from '@material-ui/core';
@@ -14,8 +15,6 @@ const Playground: React.FC = (props) => {
 
     const [chatDrawer, setChatDrawer] = useState<boolean>(false)
     const [smallScreenView, setSmallScreenView] = useState<boolean>(false)
-
-    const members = useStore(useCallback(state => state.members, []))
 
     const getRoom = useStore(useCallback(state => state.getRoom, []))
 
@@ -66,13 +65,8 @@ const Playground: React.FC = (props) => {
                 </div>
             </div>
             <Grid container>
-                <Grid item md={2} sm={12} xs={12} style={{ width: '90%' }}>
-                    {members.map(member => (
-                        <>
-                            <p>{member.memberDetails.name}</p>
-                            <img style={{ width: 46, borderRadius: 23 }} src={`/images/avatar_${member.memberDetails.avatar}.jpg`} />
-                        </>
-                    ))}
+                <Grid item md={2} sm={12} xs={12}>
+                    <ScoreCard />
                 </Grid>
                 <Grid item md={8} sm={12} xs={12}>
                     <SketchBoard getColor={getColor} />

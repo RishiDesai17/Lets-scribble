@@ -11,6 +11,7 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
             await redis.set(roomID, JSON.stringify(roomData))
             socket.broadcast.to(roomID).emit("game started")
             const members = io.sockets.adapter.rooms[roomID].sockets
+            
             newGame({
                 _id: roomID,
                 members,
@@ -18,6 +19,7 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
                 numRounds,
                 socket
             })
+            
             turn({
                 io, 
                 socket,
@@ -38,10 +40,12 @@ const newGame = async({ _id, members, round_length, numRounds, socket }) => {
             _id,
             sockets: Object.keys(members)
         }).save();
+        
         await redis.set(_id + " round", JSON.stringify({ 
             round_length,
             numRounds,
-            currentRound: 1
+            currentRound: 1,
+            turn: socket.id
         }))
     }
     catch(err) {
@@ -58,8 +62,7 @@ exports.startGuessing = async({ socket, word, roomID }) => {
             await redis.set(roomID + " round", JSON.stringify({
                 ...roundData,
                 word,
-                startTime: new Date(),
-                turn: socket.id
+                startTime: new Date()
             }))
             socket.broadcast.to(roomID).emit("start guessing", word.length)
         }
@@ -176,6 +179,7 @@ exports.scoreManagement = ({ io, socket, roomID }) => {
     let scoreSum = 0   // score sum for current round, used to calculate score for member who was drawing
     let numMembers = 0
     const sockets = io.sockets.adapter.rooms[roomID].sockets
+    
     for(let key in sockets){
         const currentScore = io.sockets.connected[key].currentScore
         if(currentScore){
@@ -184,6 +188,7 @@ exports.scoreManagement = ({ io, socket, roomID }) => {
         io.sockets.connected[key].currentScore = undefined
         numMembers += 1
     }
+    
     const drawerScore = Math.ceil(scoreSum / numMembers)
     socket.score += drawerScore
     if(drawerScore > 0){
@@ -199,12 +204,14 @@ exports.scoreManagement = ({ io, socket, roomID }) => {
             score: socketData.score
         })
     }
+    
     updatedScores = updatedScores.sort((a, b) => {
         if(a.score > b.score){
             return -1    // arrange scores in descending order
         }
         return 1
     })
+    
     io.sockets.in(roomID).emit("updated scores", updatedScores)
     return updatedScores
 }

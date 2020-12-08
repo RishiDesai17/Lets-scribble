@@ -138,8 +138,8 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             }
             else{
                 toastInfo('start guessing')
-                setOverlay(false)
             }
+            setOverlay(false)
             startCountdown()
         })
 
@@ -272,6 +272,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         socket.emit("chosen word", choice)
         timerForNextTurn(socket)
         setOpen(false)
+        setOverlay(false)
         startCountdown()
         if(myTurn){
             setSelectedWord(choice)

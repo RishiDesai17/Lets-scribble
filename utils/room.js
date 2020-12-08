@@ -59,10 +59,12 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
             const { word, startTime, turn } = JSON.parse(await redis.get(roomID + " round"))
-            console.log(turn)
-            const wordLength = 0
+            let wordLength = 0
             if(word){
                 wordLength = word.length
+            }
+            else{
+                socket.emit("someone choosing word", io.sockets.connected[turn].memberDetails.name)
             }
             socket.emit("members in this room", usersInThisRoom, { wordLength, startTime })
         }

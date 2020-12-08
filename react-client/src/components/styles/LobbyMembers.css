@@ -2,3 +2,8 @@
     margin: 4px 0 9px 0;
     word-break: break-all;
 }
+
+.lobbyAvatars {
+    width: 90px;
+    border-radius: 45px;
+}

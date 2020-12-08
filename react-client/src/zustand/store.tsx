@@ -37,6 +37,7 @@ type Member = {
         name: string
         avatar: number
     }
+    score: number
 }
 
 const INIT_STATE = {
@@ -55,9 +56,9 @@ const GLOBAL_VARS: GLOBAL_VAR = {
 const useStore = create<State>((set, get) => ({
     ...INIT_STATE,
 
-    setSocket: (socket: SocketIOClient.Socket) => GLOBAL_VARS.socket = socket, //set({ socket }),
-    setRoom: (room: string) => GLOBAL_VARS.room = room, //set({ room }),
-    setName: (name: string) => GLOBAL_VARS.name = name, //set({ name }),
+    setSocket: (socket: SocketIOClient.Socket) => GLOBAL_VARS.socket = socket,
+    setRoom: (room: string) => GLOBAL_VARS.room = room,
+    setName: (name: string) => GLOBAL_VARS.name = name,
     setMembers: (members: Member[]) => set({ members }),
     addMember: (newMember: Member) => set(state => ({ members: [...state.members, newMember] })),
     removeMember: (exMember: string) => set(state => {
@@ -75,7 +76,7 @@ const useStore = create<State>((set, get) => ({
         GLOBAL_VARS.room = ""
     },
     
-    getSocket: () => GLOBAL_VARS.socket, //get().socket,
+    getSocket: () => GLOBAL_VARS.socket,
     getRoom: () => GLOBAL_VARS.room,
     getName: () => GLOBAL_VARS.name,
     getAvatar: () => get().avatar,
