@@ -22,6 +22,13 @@ type Member = {
     score: number
 }
 
+type Message = {
+    socketID: string
+    sender: string
+    message: string
+    color: string
+}
+
 type HandleEventTypeProps = {
     e: MouseEvent | TouchEvent
     toDraw: boolean
@@ -71,7 +78,10 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         reset: state.reset
     }), []))
 
-    const clearChats = useChatsStore(useCallback(state => state.clearChats, []))
+    const { addChat, clearChats } = useChatsStore(useCallback(state => ({
+        addChat: state.addChat,
+        clearChats: state.clearChats
+    }), []))
 
     const { myTurn, setMyTurn, getMyTurn, roundLength, setSelectedWord, startCountdown } = useGameStore(useCallback(state => ({
         myTurn: state.myTurn,
@@ -131,6 +141,10 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
                 setOverlay(false)
             }
             startCountdown()
+        })
+
+        socket.on("guesses", (message: Message) => {
+            addChat(message)
         })
         
         socket.on("game over", (results: Member[]) => {

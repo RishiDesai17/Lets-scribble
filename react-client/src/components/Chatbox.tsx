@@ -6,37 +6,19 @@ import GuessInput from './GuessInput';
 import { Card, CardContent } from '@material-ui/core';
 import './styles/Chatbox.css';
 
-type Message = {
-    socketID: string
-    sender: string
-    message: string
-    color: string
-}
-
 const Chatbox: React.FC = () => {
     const getSocket = useStore(useCallback(state => state.getSocket, []))
 
     const myTurn = useGameStore(useCallback(state => state.myTurn, []))
 
-    const { chats, addChat } = useChatsStore(useCallback(state => ({ 
-        chats: state.chats,
-        addChat: state.addChat
-    }), []))
+    const chats = useChatsStore(useCallback(state => state.chats, []))
 
     const chatboxRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        init()
-    }, [])
-
-    const init = () => {
-        const socket = getSocket()
-        socket.on("guesses", (message: Message) => {
-            addChat(message)
-            if(!chatboxRef.current) return
-            chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight
-        })
-    }
+        if(!chatboxRef.current) return
+        chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight
+    }, [chats])
 
     const submitGuess = (e: React.FormEvent, guess: string) => { 
         e.preventDefault()

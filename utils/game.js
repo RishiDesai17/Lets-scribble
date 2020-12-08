@@ -76,7 +76,7 @@ exports.validateWord = async({ io, socket, word }) => {
     if(socket.currentScore){
         color = "black"
     }
-    else if(word === correctAnswer) {
+    else if(word.toLowerCase() === correctAnswer) {
         const score = Math.ceil(round_length - ((new Date() - new Date(startTime)) / 1000))
         console.log(score)
         socket.score += score
@@ -178,7 +178,6 @@ exports.scoreManagement = ({ io, socket, roomID }) => {
     const sockets = io.sockets.adapter.rooms[roomID].sockets
     for(let key in sockets){
         const currentScore = io.sockets.connected[key].currentScore
-        console.log("currentScore", currentScore)
         if(currentScore){
             scoreSum += currentScore
         }
@@ -186,7 +185,6 @@ exports.scoreManagement = ({ io, socket, roomID }) => {
         numMembers += 1
     }
     const drawerScore = Math.ceil(scoreSum / numMembers)
-    console.log("drawerScore", drawerScore)
     socket.score += drawerScore
     if(drawerScore > 0){
         socket.emit("your score", drawerScore)
