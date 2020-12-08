@@ -1,0 +1,30 @@
+#gameOverTitle {
+    font-family: 'Rock Salt', cursive;
+    color: white;
+    margin: -5px 0 12px 0;
+}
+
+#resultsContainer {
+    overflow-y: scroll;
+    max-height: 350px;
+    margin-bottom: 25px;
+}
+
+table {
+    width: 300px;
+}
+
+td {
+    padding: 10px;
+}
+
+.resultContent {
+    color: white;
+    font-size: 20px;
+}
+
+@media screen and (max-width: 350px) {
+    table {
+        width: 250px;
+    }
+}

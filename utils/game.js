@@ -151,7 +151,7 @@ exports.nextTurn = async({ io, socket }) => {
             turnIndex = 0
             let { numRounds, currentRound } = roundData
             if(numRounds === currentRound){
-                const scores = scoreManagement({ io, socket, roomID, sendScores: true })
+                const scores = scoreManagement({ io, socket, roomID })
                 io.sockets.in(roomID).emit("game over", scores)
                 return
             }
@@ -162,7 +162,7 @@ exports.nextTurn = async({ io, socket }) => {
             turnIndex += 1
         }
         roundData.turn = sockets[turnIndex]
-        scoreManagement({ io, socket, roomID, sendScores: true })
+        scoreManagement({ io, socket, roomID })
         turn({ io, socketID: sockets[turnIndex], roomID, prevWord: roundData.word })
         roundData.word = undefined
         await redis.set(roomID + " round", JSON.stringify(roundData))
@@ -172,7 +172,7 @@ exports.nextTurn = async({ io, socket }) => {
     }
 }
 
-const scoreManagement = ({ io, socket, roomID, sendScores }) => {
+const scoreManagement = ({ io, socket, roomID }) => {
     let updatedScores = []
     let scoreSum = 0   // score sum for current round, useed to calculate score for member who was drawing
     for(let key in io.sockets.adapter.rooms[roomID].sockets){
@@ -194,13 +194,9 @@ const scoreManagement = ({ io, socket, roomID, sendScores }) => {
         }
         return 1
     })
-    if(sendScores){
-        io.sockets.in(roomID).emit("updated scores", updatedScores)
-        const drawerScore = Math.floor(scoreSum / updatedScores.length)
-        socket.score += drawerScore
-        socket.emit("your score", drawerScore)
-    }
-    else{
-        return updatedScores
-    }
+    io.sockets.in(roomID).emit("updated scores", updatedScores)
+    const drawerScore = Math.floor(scoreSum / updatedScores.length)
+    socket.score += drawerScore
+    socket.emit("your score", drawerScore)
+    return updatedScores
 }

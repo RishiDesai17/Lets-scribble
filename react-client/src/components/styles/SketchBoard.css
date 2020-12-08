@@ -15,6 +15,19 @@ canvas {
     z-index: 2
 }
 
+#overlayContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.overlayText {
+    color: white;
+    font-size: 25px;
+}
+
 #chooseWordTitle {
     font-family: 'Rock Salt', cursive;
 }

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback, useState, memo } from 'react';
 import useStore from '../zustand/store';
 import useChatsStore from '../zustand/chats';
 import useGameStore from '../zustand/game';
+import ResultCard from '../components/ResultCard';
 import { makeStyles } from "@material-ui/core/styles";
 import { Modal, Backdrop, Fade, Collapse, Button } from "@material-ui/core";
 import { toastInfo } from './Toast';
@@ -17,6 +18,15 @@ type Message = {
     sender: string
     message: string
     color: string
+}
+
+type Member = {
+    socketID: string
+    memberDetails: {
+        name: string
+        avatar: number
+    }
+    score: number
 }
 
 type HandleEventTypeProps = {
@@ -55,7 +65,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const position = useRef<Coordinates>({ x: 0, y: 0 })
     const previousStrokeSent = useRef<number>(new Date().getTime())
     const wordChoices = useRef<Array<string>>([])
-    const overlayContent = useRef<string | Array<string>>("")
+    const overlayContent = useRef<string | Member[]>("")
 
     const [canvasSize, setCanvasSize] = useState<number>(500);
     const [overlay, setOverlay] = useState<boolean>(false);
@@ -137,11 +147,14 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             addChat(message)
         })
         
-        socket.on("game over", () => {
+        socket.on("game over", (results?: Member[]) => {
             toastInfo('Game over')
             socket.disconnect()
+            if(results) {
+                overlayContent.current = results
+            }
+            setOverlay(true)
             reset()
-            // history.replace("/")
             clearChats()
         })
         
@@ -304,7 +317,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             <div id="canvasContainer" style={{ height: canvasSize }}>
                 <Collapse in={overlay}>
                     <div className="sketchboardLayers" id="overlay" style={{ width: canvasSize, height: canvasSize }}>
-                        <p style={{ color: 'white' }}>{typeof overlayContent.current === "string" ? overlayContent.current : ""}</p>
+                        <div id="overlayContainer">
+                            {typeof overlayContent.current === "string" ? 
+                                <span className="overlayText">{overlayContent.current}</span>
+                            : 
+                                <ResultCard memberScores={overlayContent.current} />
+                            }
+                        </div>
                     </div>
                 </Collapse>
                 <div>
