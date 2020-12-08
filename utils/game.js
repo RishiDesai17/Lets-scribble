@@ -84,8 +84,20 @@ exports.validateWord = async({ io, socket, word }) => {
         console.log(score)
         socket.score += score
         socket.currentScore = score
-        color = "green"
         socket.emit("your score", score)
+        const name = io.sockets.connected[socket.id].memberDetails.name
+        socket.emit("guesses", {
+            socketID: socket.id,
+            sender: name,
+            message: word,
+            color: "green"
+        })
+        socket.broadcast.to(socket.roomID).emit("guesses", {
+            sender: "Server",
+            message: `${name} got it right!`,
+            color: 'black'
+        })
+        return
     }
     io.sockets.in(socket.roomID).emit("guesses", {
         socketID: socket.id,
