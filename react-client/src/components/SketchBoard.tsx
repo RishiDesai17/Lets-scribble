@@ -133,13 +133,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             startCountdown()
         })
         
-        socket.on("game over", (results?: Member[]) => {
+        socket.on("game over", (results: Member[]) => {
             toastInfo('Game over')
-            socket.disconnect()
-            if(results) {
-                overlayContent.current = results
-            }
+            overlayContent.current = results
             setOverlay(true)
+            setMyTurn(false)
+            setOpen(false)
+            socket.disconnect()
             reset()
             clearChats()
         })

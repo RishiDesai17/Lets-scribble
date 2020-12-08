@@ -1,7 +1,7 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
 const Game = require('../models/game')
-const { nextTurn } = require("./game")
+const { nextTurn, scoreManagement } = require("./game")
 
 exports.createRoom = async ({ socket, host_name, avatar }) => {
     try{
@@ -108,7 +108,8 @@ exports.disconnect = async({ io, socket }) => {
         if(roomData.gameStarted){
             if(members.length === 1){
                 // console.log("game over")
-                socket.broadcast.to(roomID).emit("game over")
+                const scores = scoreManagement({ io, socket, roomID })
+                socket.broadcast.to(roomID).emit("game over", scores)
                 deleteRoom({ roomID, socket })
                 return
             }
