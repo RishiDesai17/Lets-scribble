@@ -4,8 +4,8 @@
 
 #chatbox {
     background-color: #f5f5f5;
-    overflow-y: scroll;
-    height: 85%;
+    overflow-y: auto;
+    display: block;
     text-align: left;
 }
 
