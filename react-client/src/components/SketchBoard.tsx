@@ -29,16 +29,16 @@ type Message = {
     color: string
 }
 
+type Stroke = {
+    newCoordinates: Coordinates 
+    currentCoordinates: Coordinates
+    color: string
+}
+
 type HandleEventTypeProps = {
     e: MouseEvent | TouchEvent
     toDraw: boolean
     setPosition: boolean
-}
-
-type ReceiveStrokesProps = {
-    newCoordinates: Coordinates
-    currentCoordinates: Coordinates
-    color: string
 }
 
 type Props = {
@@ -63,7 +63,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const isDrawing = useRef<boolean>(false)
     const position = useRef<Coordinates>({ x: 0, y: 0 })
-    const previousStrokeSent = useRef<number>(new Date().getTime())
+    const strokesBuffer = useRef<Array<Stroke>>([])
     const wordChoices = useRef<Array<string>>([])
     const overlayContent = useRef<string | Member[]>("")
 
@@ -94,8 +94,12 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
 
     useEffect(() => {
         init()
+        const strokeSendingInterval = setInterval(() => {
+            sendStrokes()
+        }, 100)  // send group of strokes every 100ms instead of every stroke one by one to prevent server overload
         return () => {
             window.removeEventListener("resize", canvasSizeHandler)
+            clearInterval(strokeSendingInterval)
         }
     }, [])
 
@@ -105,8 +109,11 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         }
         const socket = getSocket()
         
-        socket.on("receiveStrokes", ({ newCoordinates, currentCoordinates, color }: ReceiveStrokesProps) => {
-            draw(newCoordinates, color, currentCoordinates)
+        socket.on("receiveStrokes", (strokes: Stroke[]) => {
+            for(let stroke of strokes) {
+                const { newCoordinates, currentCoordinates, color } = stroke
+                draw(newCoordinates, color, currentCoordinates)
+            }
         })
         
         socket.on("turn", (words: string[]) => {
@@ -228,18 +235,14 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
                 x: coordinates.x,
                 y: coordinates.y
             }, color)
-            const now = new Date().getTime()
-            if(now - previousStrokeSent.current > 12){
-                getSocket().emit("drawing", { 
-                    newCoordinates: coordinates, 
-                    currentCoordinates: {
-                        x: position.current?.x / canvasSize,
-                        y: position.current?.y / canvasSize
-                    },
-                    color
-                })
-            }
-            previousStrokeSent.current = now
+            strokesBuffer.current.push({
+                newCoordinates: coordinates, 
+                currentCoordinates: {
+                    x: position.current?.x / canvasSize,
+                    y: position.current?.y / canvasSize
+                },
+                color
+            })
         }
         if(setPosition){
             position.current = coordinates
@@ -265,6 +268,14 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         
         currentContext.closePath();
         currentContext.stroke();
+    }
+
+    const sendStrokes = () => {
+        const strokes = strokesBuffer.current
+        if(strokes.length > 0) {
+            getSocket().emit("drawing", strokes)
+            strokesBuffer.current = []
+        }
     }
 
     const chooseWord = (choice: string) => {
