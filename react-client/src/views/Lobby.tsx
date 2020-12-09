@@ -79,8 +79,9 @@ const Lobby: React.FC = (props) => {
         getAvatar: state.getAvatar
     }), []))
 
-    const { setSelectedWord, startCountdown } = useGameStore(useCallback(state => ({ 
+    const { setSelectedWord, setRoundLength, startCountdown } = useGameStore(useCallback(state => ({ 
         setSelectedWord: state.setSelectedWord,
+        setRoundLength: state.setRoundLength,
         startCountdown: state.startCountdown
     }), []))
 
@@ -136,7 +137,8 @@ const Lobby: React.FC = (props) => {
             avatar: getAvatar() + 1
         })
 
-        socket.on("game started", () => {
+        socket.on("game started", (round_length: number) => {
+            setRoundLength(round_length)
             history.replace("/playground")
         })
         

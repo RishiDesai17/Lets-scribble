@@ -9,7 +9,7 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
         if(socket.id === roomData.host) {
             roomData.gameStarted = true
             await redis.set(roomID, JSON.stringify(roomData))
-            socket.broadcast.to(roomID).emit("game started")
+            socket.broadcast.to(roomID).emit("game started", round_length) // send the round length selected by host to the members
             const members = io.sockets.adapter.rooms[roomID].sockets
             
             newGame({
@@ -57,7 +57,6 @@ const newGame = async({ _id, members, round_length, numRounds, socket }) => {
 exports.startGuessing = async({ socket, word, roomID }) => {
     try{
         const roundData = JSON.parse(await redis.get(roomID + " round"))
-        console.log(roundData)
         if(roundData !== null && !roundData.word) {
             await redis.set(roomID + " round", JSON.stringify({
                 ...roundData,
@@ -81,7 +80,6 @@ exports.validateWord = async({ io, socket, word }) => {
     }
     else if(word.toLowerCase() === correctAnswer) {
         const score = Math.ceil(round_length - ((new Date() - new Date(startTime)) / 1000))
-        console.log(score)
         socket.score += score
         socket.currentScore = score
         socket.emit("your score", score)
@@ -161,6 +159,7 @@ exports.nextTurn = async({ io, socket }) => {
         const roomID = socket.roomID
         const { sockets } = await Game.findById(roomID).select('sockets')
         let roundData = JSON.parse(await redis.get(roomID + " round"))
+        if(roundData === null) return
         let turnIndex = sockets.indexOf(roundData.turn)
         if(turnIndex === sockets.length - 1){
             turnIndex = 0
