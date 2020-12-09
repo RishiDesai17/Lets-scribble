@@ -57,15 +57,23 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
         socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, memberDetails, score: 0 })
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
-            const { word, startTime, turn } = JSON.parse(await redis.get(roomID + " round"))
+            const { word, startTime, round_length, turn } = JSON.parse(await redis.get(roomID + " round"))
             let wordLength = 0
-            if(word){
+            if(word) {
                 wordLength = word.length
             }
-            else{
+            
+            /*  send also the round length selected by host to the members 
+                since client wouldnt have that info if he joins after game starts
+            */
+            socket.emit("members in this room", usersInThisRoom, { wordLength, startTime, round_length }) 
+            
+            if(!word) { 
+                /*  this occurs when someone joins a room when some player is choosing a word, 
+                    it should happen after emitting "members in the room" event, so that client is able to listen to this
+                */
                 socket.emit("someone choosing word", io.sockets.connected[turn].memberDetails.name)
             }
-            socket.emit("members in this room", usersInThisRoom, { wordLength, startTime })
         }
         else{
             socket.emit("members in this room", usersInThisRoom)

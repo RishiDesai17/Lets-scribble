@@ -83,20 +83,24 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         clearChats: state.clearChats
     }), []))
 
-    const { myTurn, setMyTurn, getMyTurn, roundLength, setSelectedWord, startCountdown } = useGameStore(useCallback(state => ({
+    const { myTurn, setMyTurn, getMyTurn, roundLength, setSelectedWord, startCountdown, resetCountdown, resetGameStore } = useGameStore(useCallback(state => ({
         myTurn: state.myTurn,
         setMyTurn: state.setMyTurn,
         getMyTurn: state.getMyTurn,
         roundLength: state.roundLength,
         setSelectedWord: state.setSelectedWord,
-        startCountdown: state.startCountdown
+        startCountdown: state.startCountdown,
+        resetCountdown: state.resetCountdown,
+        resetGameStore: state.resetGameStore
     }), []))
 
     useEffect(() => {
         init()
+        
         const strokeSendingInterval = setInterval(() => {
             sendStrokes()
         }, 100)  // send group of strokes every 100ms instead of every stroke one by one to prevent server overload
+        
         return () => {
             window.removeEventListener("resize", canvasSizeHandler)
             clearInterval(strokeSendingInterval)
@@ -108,13 +112,6 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             return
         }
         const socket = getSocket()
-        
-        socket.on("receiveStrokes", (strokes: Stroke[]) => {
-            for(let stroke of strokes) {
-                const { newCoordinates, currentCoordinates, color } = stroke
-                draw(newCoordinates, color, currentCoordinates)
-            }
-        })
         
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
@@ -128,6 +125,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             setOverlay(true)
             setMyTurn(false)
             clearCanvas()
+            resetCountdown() // just in case latency caused countdown delay of some seconds
         })
         
         socket.on("start guessing", () => {
@@ -150,6 +148,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             startCountdown()
         })
 
+        socket.on("receiveStrokes", (strokes: Stroke[]) => {
+            for(let stroke of strokes) {
+                const { newCoordinates, currentCoordinates, color } = stroke
+                draw(newCoordinates, color, currentCoordinates)
+            }
+        })
+
         socket.on("guesses", (message: Message) => {
             addChat(message)
         })
@@ -157,12 +162,12 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         socket.on("game over", (results: Member[]) => {
             toastInfo('Game over')
             overlayContent.current = results
-            setOverlay(true)
-            setMyTurn(false)
-            setOpen(false)
-            socket.disconnect()
-            reset()
-            clearChats()
+            setOverlay(true) // to display the results
+            setOpen(false) // to close modal in case game ended at a point when player was choosing a word
+            socket.disconnect() // disonnect from server
+            reset() // clear details for this room
+            clearChats() // clear the guess chats
+            resetGameStore() // clear game data
         })
         
         canvasSizeHandler()
@@ -174,15 +179,18 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }, [canvasSize])
 
     const attachEventListeners = () => {
+        /* for canvas layout handling */
         window.addEventListener("resize", canvasSizeHandler)
 
         const canvas = canvasRef.current
 
+        /* various canvas drawing events to be listened to for strokes */
         canvas?.addEventListener('mousedown',  onMouseDown)
         canvas?.addEventListener('mousemove', onMouseMove)
         canvas?.addEventListener('mouseup', onMouseUp)
         canvas?.addEventListener('mouseleave', onMouseUp)
 
+        /* for mobile devices */
         canvas?.addEventListener('touchstart',  onMouseDown)
         canvas?.addEventListener('touchmove',  onMouseMove)
         canvas?.addEventListener('touchend', onMouseUp)
@@ -231,10 +239,12 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         }
         if(toDraw){
             const color = getColor()
+            
             draw({
                 x: coordinates.x,
                 y: coordinates.y
             }, color)
+            
             strokesBuffer.current.push({
                 newCoordinates: coordinates, 
                 currentCoordinates: {
@@ -271,6 +281,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }
 
     const sendStrokes = () => {
+        /* send batch of strokes */
         const strokes = strokesBuffer.current
         if(strokes.length > 0) {
             getSocket().emit("drawing", strokes)
@@ -283,7 +294,6 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         socket.emit("chosen word", choice)
         timerForNextTurn(socket)
         setOpen(false)
-        setOverlay(false)
         startCountdown()
         if(myTurn){
             setSelectedWord(choice)
@@ -304,7 +314,6 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         }
         currentContext.fillStyle = color
         currentContext.fillRect(0, 0, canvasSize, canvasSize);
-
     }
 
     const canvasSizeHandler = () => {

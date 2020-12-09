@@ -10,7 +10,8 @@
 
 #scoreCardContent {
     overflow-y: auto;
-    height: 85%;
+    display: block;
+    height: 100%;
 }
 
 .scoreCardBigScreen {

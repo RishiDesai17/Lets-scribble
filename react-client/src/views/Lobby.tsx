@@ -113,10 +113,11 @@ const Lobby: React.FC = (props) => {
         const socket = io("/")
         setSocket(socket)
         
-        socket.on("members in this room", (membersInThisRoom: Member[], roundDetails: { wordLength: number, startTime: string }) => {
+        socket.on("members in this room", (membersInThisRoom: Member[], roundDetails?: { wordLength: number, startTime: string, round_length: number }) => {
             setMembers(membersInThisRoom)
             if(roundDetails){
-                const { wordLength, startTime } = roundDetails
+                const { wordLength, startTime, round_length } = roundDetails
+                setRoundLength(round_length)
                 if(wordLength === 0){
                     history.replace("/playground")
                     return
@@ -125,8 +126,8 @@ const Lobby: React.FC = (props) => {
                 for(let i = 0; i < wordLength; i++){
                     word += "_ "
                 }
-                setSelectedWord(word)
                 startCountdown(startTime)
+                setSelectedWord(word)
                 history.replace("/playground")
             }
         })
