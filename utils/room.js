@@ -54,7 +54,6 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
                 score: io.sockets.connected[key].score
             })
         }
-        console.log(usersInThisRoom)
         socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, memberDetails, score: 0 })
         const { gameStarted } = JSON.parse(await redis.get(roomID))
         if(gameStarted){
@@ -108,8 +107,7 @@ exports.disconnect = async({ io, socket }) => {
         }
         const socketID = socket.id
         if(roomData.gameStarted){
-            if(members.length === 1){
-                // console.log("game over")
+            if(members.length === 1) {
                 const scores = scoreManagement({ io, socket, roomID })
                 socket.broadcast.to(roomID).emit("game over", scores)
                 deleteRoom({ roomID, socket })
@@ -134,10 +132,8 @@ exports.disconnect = async({ io, socket }) => {
             socket.broadcast.to(roomID).emit("someone left", socketID)
         }
         if(roomData.host === socketID){
-            // console.log("new host")
             allotNewHost({ newHost: members[0], roomData, socket })
         }
-        // console.log(await redis.keys('*'))
     }
     catch(err){
         console.log(err)

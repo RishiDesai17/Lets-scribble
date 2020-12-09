@@ -24,7 +24,6 @@ const webSocketsInit = app => {
         })
 
         socket.on("drawing", data => {
-            console.log(data)
             socket.broadcast.to(socket.roomID).emit("receiveStrokes", data)
         })
 

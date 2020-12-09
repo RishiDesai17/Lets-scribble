@@ -2,7 +2,14 @@ const mongoose = require('mongoose')
 
 const connectToMongoDB = async() => {
     try{
-        await mongoose.connect(process.env.LOCAL_DBURL || process.env.DBURL, {
+        let dbURL
+        if(process.env.NODE_ENV === "prod"){
+            dbURL = process.env.DBURL
+        }
+        else{
+            dbURL = process.env.LOCAL_DBURL
+        }
+        await mongoose.connect(dbURL, {
             useUnifiedTopology: true,
             useNewUrlParser: true,
             useFindAndModify: false
