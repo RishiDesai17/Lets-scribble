@@ -1,7 +1,6 @@
 const express = require("express")
 const app = express()
 const webSocketsInit = require('./infra/WebSockets')
-const connectToMongoDB = require('./infra/mongo')
 require('dotenv').config({path: __dirname + '/.env'})
 
 app.use(express.json())
@@ -18,7 +17,6 @@ if(process.env.NODE_ENV === "prod"){
 
 const main = async() => {
     const server = await webSocketsInit(app)
-    await connectToMongoDB()
     return server
 }
 

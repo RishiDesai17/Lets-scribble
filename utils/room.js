@@ -1,6 +1,5 @@
 const uuid = require('uuid')
 const redis = require('../infra/redis');
-const Game = require('../models/game')
 const { nextTurn, scoreManagement } = require("./game")
 
 exports.createRoom = async ({ socket, host_name, avatar }) => {
@@ -32,11 +31,13 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
             socket.emit("invalid room")
             return;
         }
+        
         const room = await redis.get(roomID)
         if(room === null){
             socket.emit("invalid room")
             return;
         }
+        
         socket.join(roomID)
         socket.roomID = roomID
         const memberDetails = {
@@ -45,7 +46,7 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
         }
         socket.memberDetails = memberDetails
         socket.score = 0
-        addMemberToDB({ roomID, socket })
+        
         let usersInThisRoom = []
         for(let key in io.sockets.adapter.rooms[roomID].sockets){
             usersInThisRoom.push({
@@ -55,7 +56,8 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
             })
         }
         socket.broadcast.to(roomID).emit("new member", { socketID: socket.id, memberDetails, score: 0 })
-        const { gameStarted } = JSON.parse(await redis.get(roomID))
+
+        const { gameStarted } = JSON.parse(await redis.get(roomID))        
         if(gameStarted){
             const { word, startTime, round_length, turn } = JSON.parse(await redis.get(roomID + " round"))
             let wordLength = 0
@@ -67,7 +69,8 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
                 since client wouldnt have that info if he joins after game starts
             */
             socket.emit("members in this room", usersInThisRoom, { wordLength, startTime, round_length }) 
-            
+            addMemberToDB({ roomID, socket }) // add member directly to db since he joined after game started
+
             if(!word) { 
                 /*  this occurs when someone joins a room when some player is choosing a word, 
                     it should happen after emitting "members in the room" event, so that client is able to listen to this
@@ -87,11 +90,7 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
 
 const addMemberToDB = async({ roomID, socket }) => {
     try {
-        await Game.findByIdAndUpdate(roomID, {
-            $push: {
-                'sockets': socket.id
-            }
-        })
+        await redis.rpushx(roomID + " members", socket.id)
     } catch (err) {
         console.log(err)
         socket.emit("something broke")
@@ -104,15 +103,12 @@ exports.disconnect = async({ io, socket }) => {
         if(!roomID) return
         socket.broadcast.to(roomID).emit("member left")
         let roomData = JSON.parse(await redis.get(roomID))
-        let members;
         const roomDetails = io.sockets.adapter.rooms[roomID]
-        if(roomDetails){
-            members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
-        }
-        else{
+        if(!roomDetails){
             deleteRoom({ roomID, socket })
-            return 
+            return
         }
+        const members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
         const socketID = socket.id
         if(roomData.gameStarted){
             if(members.length === 1) {
@@ -126,11 +122,7 @@ exports.disconnect = async({ io, socket }) => {
             if(socketID === turn){
                 nextTurn({ io, socket })
             }
-            await Game.findByIdAndUpdate(roomID, {
-                $pull: {
-                    'sockets': socketID
-                }
-            })
+            await redis.lrem(roomID + " members", 1, socketID)
         }
         else{
             if(members.length === 0){
@@ -165,7 +157,7 @@ const deleteRoom = async({ roomID, socket }) => {
     try{
         redis.del(roomID)
         redis.del(roomID + " round")
-        await Game.findByIdAndDelete(roomID)
+        redis.del(roomID + " members")
     }
     catch(err){
         console.log(err)

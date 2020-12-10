@@ -115,6 +115,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
+            resetCountdown()
             setOpen(true)
             setMyTurn(true)
             clearCanvas()
