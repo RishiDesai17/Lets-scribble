@@ -45,10 +45,8 @@ const Palette: React.FC<Props> = ({ setColorInParent }) => {
             for(let j = i*5; j < (i+1)*5; j++){
                 const isSelected = colors[j] === selectedColor
                 colorGroup.push(
-                    <div style={{ border: isSelected ? '1.8px solid white' : '' }} 
-                        onClick={() => handleColorChange(colors[j])}
-                    >
-                        <div className="color" style={{ backgroundColor: colors[j] }}></div>
+                    <div onClick={() => handleColorChange(colors[j])}>
+                        <div className="color" style={{ width: isSelected ? 35 : 40, height: isSelected ? 35: 40, border: isSelected ? '2.5px solid white' : '', backgroundColor: colors[j] }}></div>
                     </div>
                 )
             }

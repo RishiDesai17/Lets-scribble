@@ -10,8 +10,11 @@
 
 #scoreCardContent {
     overflow-y: auto;
-    display: block;
-    height: 100%;
+    max-height: 510px;
+}
+
+.scoreCardAvatarContainer {
+    flex: 0.85;
 }
 
 .scoreCardBigScreen {

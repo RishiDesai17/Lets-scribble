@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "set NODE_ENV=prod&& node server.js || export NODE_ENV=prod&& node server.js",
-    "dev": "set NODE_ENV=dev&& nodemon --ignore react-client/ server.js || export NODE_ENV=dev&& nodemon --ignore react-client/ server.js",
-    "heroku-postbuild": "npm install && npm run build"
+    "dev": "set NODE_ENV=dev&& nodemon --ignore react-client/ server.js || export NODE_ENV=dev&& nodemon --ignore react-client/ server.js"
   },
   "keywords": [],
   "author": "",

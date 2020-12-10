@@ -70,8 +70,8 @@ const ScoresList: React.FC = (props) => {
                                     <div className="scoreCardBigScreen">
                                         <b>#{index + 1}</b>
                                         <img className="scoreCardAvatar" src={`/images/avatar_${member.memberDetails.avatar}.jpg`} />
-                                        <div>
-                                            <p className="scoreCardName">{member.memberDetails.name}</p>
+                                        <div className="scoreCardAvatarContainer">
+                                            <p className="scoreCardName"><b>{member.memberDetails.name}</b></p>
                                             <p className="score">Score: <b>{member.score}</b></p>
                                         </div>
                                     </div> 
