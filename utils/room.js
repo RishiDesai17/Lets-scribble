@@ -101,16 +101,19 @@ exports.disconnect = async({ io, socket }) => {
     try{
         const roomID = socket.roomID
         if(!roomID) return
+        
         socket.broadcast.to(roomID).emit("member left")
+        
         let roomData = JSON.parse(await redis.get(roomID))
         const roomDetails = io.sockets.adapter.rooms[roomID]
-        if(!roomDetails){
+        if(!roomDetails){ // just in case a disconnect event triggered after room was deleted
             deleteRoom({ roomID, socket })
             return
         }
         const members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
         const socketID = socket.id
         if(roomData.gameStarted){
+            /* if game started and only 1 member is left, it means that everyone else left, so end the game */
             if(members.length === 1) {
                 const scores = scoreManagement({ io, socket, roomID })
                 socket.broadcast.to(roomID).emit("game over", scores)
@@ -119,18 +122,21 @@ exports.disconnect = async({ io, socket }) => {
             }
             socket.broadcast.to(roomID).emit("someone left", socketID)
             const { turn } = JSON.parse(await redis.get(roomID + " round"))
+            /* if a player left the game while he was choosing a word, transfer turn to next player */
             if(socketID === turn){
                 nextTurn({ io, socket })
             }
             await redis.lrem(roomID + " members", 1, socketID)
         }
         else{
+            /* if game not started, an members length in room is now zero, means host left and no body else had joined */
             if(members.length === 0){
                 deleteRoom({ roomID, socket })
                 return
             }
             socket.broadcast.to(roomID).emit("someone left", socketID)
         }
+        /* allot a new host if host leaves */
         if(roomData.host === socketID){
             allotNewHost({ newHost: members[0], roomData, socket })
         }

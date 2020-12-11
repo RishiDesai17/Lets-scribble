@@ -65,6 +65,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const position = useRef<Coordinates>({ x: 0, y: 0 })
     const strokesBuffer = useRef<Array<Stroke>>([])
     const wordChoices = useRef<Array<string>>([])
+    const nextTurnTimeout = useRef<number>()
     const overlayContent = useRef<string | Member[]>("")
 
     const [canvasSize, setCanvasSize] = useState<number>(500);
@@ -126,7 +127,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             setOverlay(true)
             setMyTurn(false)
             clearCanvas()
-            resetCountdown() // just in case latency caused countdown delay of some seconds
+            /*  Below operations need to be performed if all players have correctly given the answer
+                and the next turn is given to the next player, so we need to clear the timeout and countdown.
+                Also for resetCountDown, another reason to execute it is 
+                just in case latency caused countdown delay of a few seconds
+            */
+            clearInterval(nextTurnTimeout.current)
+            resetCountdown()
         })
         
         socket.on("start guessing", () => {
@@ -302,7 +309,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }
 
     const timerForNextTurn = (socket: SocketIOClient.Socket) => {
-        setTimeout(() => {
+        nextTurnTimeout.current = window.setTimeout(() => {
             setMyTurn(false)
             socket.emit("next turn")
         }, roundLength * 1000)

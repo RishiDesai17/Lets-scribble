@@ -111,6 +111,12 @@ exports.validateWord = async({ io, socket, word }) => {
             message: `${name} got it right!`,
             color: 'black'
         })
+        
+        const moveToNextTurn = await everyoneAnsweredCorrectly({ io, socket, roomID: socket.roomID })
+        if(moveToNextTurn) {
+            this.nextTurn({ io, socket })
+        }
+        
         return
     }
     /* send the word to players when someone enters an incorrect word or enters words after answering correctly */
@@ -120,6 +126,30 @@ exports.validateWord = async({ io, socket, word }) => {
         message: word,
         color
     })
+}
+
+const everyoneAnsweredCorrectly = async({ io, socket, roomID }) => {
+    try {
+        const { turn, startTime } = JSON.parse(await redis.get(roomID + " round"))
+    
+        /* if there are less than only 2 sec for round to get over according to the time limit
+        we would wait for time limit to get over by itself */
+        if(new Date() - new Date(startTime) < 2000) {
+            return false
+        }
+        
+        const sockets = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
+        for(let socketID of sockets) {
+            if(socketID !== turn && !io.sockets.connected[socketID].currentScore) {
+                return false
+            }
+        }
+        return true
+    }
+    catch(err) {
+        console.log(err)
+        socket.emit("something broke")
+    }
 }
 
 const turn = async({ io, socketID, roomID, prevWord }) => {
@@ -232,7 +262,6 @@ exports.scoreManagement = ({ io, socket, roomID }) => {
     const sockets = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
     
     for(let socketID of sockets) {
-        console.log(socketID)
         const currentScore = io.sockets.connected[socketID].currentScore
         
         if(currentScore){
