@@ -27,6 +27,10 @@ const webSocketsInit = app => {
             socket.broadcast.to(socket.roomID).emit("receiveStrokes", data)
         })
 
+        socket.on("send full canvas", ({ sourceCanvas, recipient }) => {
+            socket.broadcast.to(recipient).emit("full canvas", sourceCanvas)
+        })
+
         socket.on("next turn", () => {
             nextTurn({ io, socket })
         })

@@ -156,11 +156,30 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             startCountdown()
         })
 
+        socket.on("new member", (member: Member) => {
+            socket.emit("send full canvas", {
+                sourceCanvas: canvasRef.current?.toDataURL('image/jpeg', 0.2),
+                recipient: member.socketID
+            })
+        })
+
         socket.on("receiveStrokes", (strokes: Stroke[]) => {
             for(let stroke of strokes) {
                 const { newCoordinates, currentCoordinates, color } = stroke
                 draw(newCoordinates, color, currentCoordinates)
             }
+        })
+        
+        socket.on("full canvas", (sourceCanvas: string) => {
+            const canvas = canvasRef.current
+            if(!canvas) return
+            const currentContext = canvas.getContext('2d')
+            if(!currentContext) return
+            const canvasImage = new Image()
+            canvasImage.onload = () => {
+                currentContext.drawImage(canvasImage, 0, 0, canvas.width, canvas.height)
+            };
+            canvasImage.src = sourceCanvas  
         })
 
         socket.on("guesses", (message: Message) => {
