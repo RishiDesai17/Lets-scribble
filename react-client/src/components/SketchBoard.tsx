@@ -230,34 +230,33 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         if(!canvasRef.current){
             return
         }
+        const canvasSize = canvasRef.current.width
+        
         let coordinates: Coordinates
         if(e instanceof MouseEvent){
             coordinates = {
-                x: e.pageX - canvasRef.current.offsetLeft,
-                y: e.pageY - canvasRef.current.offsetTop
+                x: (e.pageX - canvasRef.current.offsetLeft) / canvasSize,
+                y: (e.pageY - canvasRef.current.offsetTop) / canvasSize
             }
             console.log(coordinates, canvasRef.current.offsetTop, canvasRef.current.offsetLeft)
         }
         else{
             coordinates = {
-                x: e.changedTouches[0].clientX - canvasRef.current.offsetLeft,
-                y: e.changedTouches[0].clientY - canvasRef.current.offsetTop
+                x: (e.changedTouches[0].clientX - canvasRef.current.offsetLeft) / canvasSize,
+                y: (e.changedTouches[0].clientY - canvasRef.current.offsetTop) / canvasSize
             }
             console.log(coordinates)
         }
         if(toDraw){
             const color = getColor()
             
-            draw({
-                x: coordinates.x,
-                y: coordinates.y
-            }, color)
+            draw(coordinates, color)
             
             strokesBuffer.current.push({
                 newCoordinates: coordinates, 
                 currentCoordinates: {
-                    x: position.current?.x / canvasSize,
-                    y: position.current?.y / canvasSize
+                    x: position.current?.x,
+                    y: position.current?.y
                 },
                 color
             })
@@ -268,21 +267,22 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }
 
     const draw = ({ x: newX, y: newY }: Coordinates, color: string, currentCoordinates?: Coordinates): void => {
-        const currentContext = canvasRef.current?.getContext('2d')
-        if(!currentContext){
-            return
-        }
+        if(!canvasRef.current) return
+        const currentContext = canvasRef.current.getContext('2d')
+        if(!currentContext) return
+
         currentContext.lineWidth = 2
         currentContext.strokeStyle = color
         currentContext.beginPath();
+        const canvasSize = canvasRef.current.width
         
         if(currentCoordinates){
             currentContext.moveTo(currentCoordinates.x * canvasSize, currentCoordinates.y * canvasSize);
         }
         else{
-            currentContext.moveTo(position.current.x, position.current.y);
+            currentContext.moveTo(position.current.x * canvasSize, position.current.y * canvasSize);
         }
-        currentContext.lineTo(newX, newY);
+        currentContext.lineTo(newX * canvasSize, newY * canvasSize);
         
         currentContext.closePath();
         currentContext.stroke();
