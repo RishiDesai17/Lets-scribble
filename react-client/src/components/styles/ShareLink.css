@@ -1,0 +1,23 @@
+#shareLinkContainer {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    background-color: slategray;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#shareLink {
+    margin: 12px 12px 8px;
+}
+
+@media screen and (max-width: 500px) {
+    #shareLinkContainer {
+        top: 16px;
+        left: 14px;
+    }
+
+    #shareLink {
+        margin: 8px 8px 4px;
+    }
+}

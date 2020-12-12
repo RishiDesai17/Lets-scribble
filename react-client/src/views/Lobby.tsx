@@ -4,6 +4,7 @@ import useGameStore from '../zustand/game';
 import GameSettings from '../components/GameSettings';
 import LobbyMembers from '../components/LobbyMembers';
 import ModalBody from '../components/ModalBody';
+import ShareLink from '../components/ShareLink';
 import { Modal, Backdrop, Fade, Grid } from '@material-ui/core';
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { useHistory, useParams } from 'react-router-dom';
@@ -187,9 +188,16 @@ const Lobby: React.FC = (props) => {
         }
     }
 
+    if(getRoom() === "") {
+        return (
+            <p>Redirecting...</p>
+        )
+    }
+
     return (
         <div id="lobbyBackground">
             <h1 id="lobbyTitle">Lobby</h1>
+            <ShareLink />
             <Grid container>
                 {isHost && 
                     <Grid item md={4} sm={4} xs={12} style={{ display: 'flex', justifyContent: 'center' }}>

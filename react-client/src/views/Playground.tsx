@@ -6,6 +6,7 @@ import Palette from '../components/Palette';
 import ScoreCard from '../components/ScoreCard';
 import Chatbox from '../components/Chatbox';
 import GameBar from '../components/GameBar';
+import ShareLink from '../components/ShareLink';
 import { Grid, Button, Drawer } from '@material-ui/core';
 import { useHistory } from 'react-router-dom';
 import './styles/Playground.css';
@@ -56,7 +57,7 @@ const Playground: React.FC = (props) => {
         return color.current
     }
 
-    if(getRoom() === ""){
+    if(getRoom() === "") {
         return (
             <p>Redirecting...</p>
         )
@@ -65,6 +66,7 @@ const Playground: React.FC = (props) => {
     return (
         <div id="playgroundBackground">
             <h1 id="playgroundTitle">Playground</h1>
+            <ShareLink />
             <div id="gameBarContainer">
                 <div style={{ width: '85%' }}>
                     <GameBar />
