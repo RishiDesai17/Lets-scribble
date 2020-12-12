@@ -47,6 +47,7 @@ exports.joinRoom = async({ io, socket, roomID, name, avatar }) => {
         socket.memberDetails = memberDetails
         socket.score = 0
         
+        /* create list of users already in room to send to player who just joined */
         let usersInThisRoom = []
         for(let key in io.sockets.adapter.rooms[roomID].sockets){
             usersInThisRoom.push({

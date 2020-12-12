@@ -7,13 +7,16 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
         let roomData = JSON.parse(await redis.get(roomID))
         if(socket.id === roomData.host) {
             
+            /* In case an event is trigerred to start game with only 1 member, then prevent it */
+            const members = Object.keys(io.sockets.adapter.rooms[roomID].sockets)
+            if(members.length <= 1) return
+
             /* boolean to verify whether game has started or not, to check whether players joins later and accordingly deal with */
             roomData.gameStarted = true
             await redis.set(roomID, JSON.stringify(roomData))
 
             /* send the round length selected by host to the members, along with game started used to navigate them to playground */
-            socket.broadcast.to(roomID).emit("game started", round_length) 
-            const members = io.sockets.adapter.rooms[roomID].sockets
+            socket.broadcast.to(roomID).emit("game started", round_length)
             
             /* to add to redis the necessary details */
             newGame({
@@ -40,9 +43,8 @@ exports.startGame = async({ io, socket, round_length, numRounds }) => {
 
 const newGame = async({ roomID, members, round_length, numRounds, socket }) => {
     try {
-        const sockets = Object.keys(members)
-        sockets.unshift(roomID + " members") // add key to the start of members array to produce required format for redis array
-        await redis.rpush(sockets)
+        members.unshift(roomID + " members") // add key to the start of members array to produce required format for redis array
+        await redis.rpush(members)
         
         await redis.set(roomID + " round", JSON.stringify({
             round_length,

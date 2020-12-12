@@ -178,11 +178,13 @@ const Lobby: React.FC = (props) => {
     }
 
     const startGame = ({ round_length, numRounds }: Settings) => {
-        getSocket().emit("start game", {
-            round_length,
-            numRounds
-        })
-        history.replace("/playground")
+        if(members.length > 1) {
+            getSocket().emit("start game", {
+                round_length,
+                numRounds
+            })
+            history.replace("/playground")
+        }
     }
 
     return (
@@ -195,7 +197,7 @@ const Lobby: React.FC = (props) => {
                     </Grid>
                 }
                 <Grid item md={isHost ? 8 : 12} sm={isHost ? 8 : 12} xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
-                    {getName() !== "" && <LobbyMembers members={members} isHost={isHost} socketID={getSocket().id} />}
+                    {getName() !== "" && !modalOpen && <LobbyMembers members={members} isHost={isHost} socketID={getSocket().id} />}
                 </Grid>
             </Grid>
             <Modal

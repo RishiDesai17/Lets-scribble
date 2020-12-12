@@ -22,8 +22,8 @@ const LobbyMembers: React.FC<Props> = ({ members, isHost, socketID }) => {
         <div style={{ width: isHost ? '85%' : '78%' }}>
             <Card>
                 <CardContent>
-                    <Grid container id="membersContainer">
-                        {members.map(member => (
+                    <Grid container id="membersContainer" justify="center">
+                        {members.length === 0 ? <div id="activityIndicator"></div> : members.map(member => (
                             <Grid item md={isHost ? 3 : 2} sm={4} xs={6}>
                                 <img src={`/images/avatar_${member.memberDetails.avatar}.jpg`} className="lobbyAvatars" />
                                 <p className="memberName" style={{ fontWeight: socketID === member.socketID ? 'bold' : 'normal' }}>{member.memberDetails.name}</p>
