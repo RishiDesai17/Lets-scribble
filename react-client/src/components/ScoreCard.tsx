@@ -32,6 +32,8 @@ const ScoresList: React.FC = (props) => {
 
     const init = () => {
         const socket = getSocket()
+        if(!socket.id) return
+        
         socket.on("updated scores", (members: Member[]) => {
             setMembers(members)
         })

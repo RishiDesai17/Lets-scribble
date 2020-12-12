@@ -113,6 +113,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             return
         }
         const socket = getSocket()
+        if(!socket.id) return
         
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words

@@ -188,12 +188,6 @@ const Lobby: React.FC = (props) => {
         }
     }
 
-    if(getRoom() === "") {
-        return (
-            <p>Redirecting...</p>
-        )
-    }
-
     return (
         <div id="lobbyBackground">
             <h1 id="lobbyTitle">Lobby</h1>

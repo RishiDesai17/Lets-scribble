@@ -17,6 +17,7 @@ const Word: React.FC = () => {
 
     const init = () => {
         const socket = getSocket()
+        if(!socket.id) return
         
         // listeners for displaying appropriate blanks according to word length for users guessing
         socket.on("start guessing", (wordLength: number) => {

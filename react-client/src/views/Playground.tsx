@@ -57,12 +57,6 @@ const Playground: React.FC = (props) => {
         return color.current
     }
 
-    if(getRoom() === "") {
-        return (
-            <p>Redirecting...</p>
-        )
-    }
-
     return (
         <div id="playgroundBackground">
             <h1 id="playgroundTitle">Playground</h1>

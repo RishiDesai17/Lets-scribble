@@ -13,6 +13,8 @@ const Word: React.FC = (props) => {
 
     const init = () => {
         const socket = getSocket()
+        if(!socket.id) return
+
         socket.on("your score", (score: number) => {
             setScore(currentScore => (currentScore + score)) // increment score
         })
