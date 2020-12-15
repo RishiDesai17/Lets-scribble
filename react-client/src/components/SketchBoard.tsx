@@ -139,6 +139,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             setOpen(true)
             setMyTurn(true)
             clearCanvas()
+            socket.on("auto-selected", () => autoSelectionHandler(socket))
         })
         
         socket.on("someone choosing word", (name: string) => {
@@ -154,6 +155,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             */
             clearInterval(nextTurnTimeout.current)
             resetCountdown()
+            socket.on("auto-selected", () => autoSelectionHandler(socket))
         })
         
         socket.on("start guessing", () => {
@@ -327,7 +329,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const chooseWord = (choice: string) => {
         setOpen(false)
         const socket = getSocket()
-        // socket.off("auto-selected")
+        socket.off("auto-selected")
         socket.emit("chosen word", choice)
         if(myTurn){
             setSelectedWord(choice)
@@ -354,14 +356,13 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             startCountdown()
             setOverlay(false)
         }
+        socket.off("auto-selected")
     }
 
     const timerForNextTurn = (socket: SocketIOClient.Socket) => {
         nextTurnTimeout.current = window.setTimeout(() => {
             setMyTurn(false)
             socket.emit("next turn")
-            // console.log(socket._callbacks)
-            // socket.on("auto-selected", () => autoSelectionHandler(socket))
         }, roundLength * 1000)
     }
 
