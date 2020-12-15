@@ -179,13 +179,9 @@ const turn = async({ io, socketID, roomID, prevWord }) => {
     /* send selected words to person whose turn is next */
     io.sockets.in(socketID).emit("turn", selectedWords)
     
-    const sockets = io.sockets.connected
     /* send information about who currently is choosing a word i.e. whose turn it is */
-    Object.keys(sockets).forEach(socket_id => {
-        if(socketID !== socket_id) {
-            io.sockets.in(socket_id).emit("someone choosing word", sockets[socketID].memberDetails.name)
-        }
-    });
+    const socket = io.sockets.connected[socketID]
+    socket.broadcast.to(roomID).emit("someone choosing word", socket.memberDetails.name)
     
     /*  send the correct answer of the previous round
         (the optional prevWord parameter was given to this function indicates that this isnt the first round)
@@ -209,13 +205,23 @@ const autoSelect = async({ io, roomID, word, socketID }) => {
         roundData !== null is to prevent execution if players quit before selecting word
     */
     if(roundData !== null && !roundData.word) {
-        await redis.set(roomID + " round", JSON.stringify({
-            ...roundData,
-            word,
-            startTime: new Date(),
-            turn: socketID
-        }))
-        io.sockets.in(roomID).emit("auto-selected", word.length)
+        const socket = io.sockets.connected[socketID]
+        socket.emit("auto-selected")
+        /*  Additional timeout to prevent clashes in case there is a concurrent event for both auto and
+            manual word selection. Manual must be given prefernce hence the small delay is applied here.
+        */
+        setTimeout(async() => {
+            const roundData = JSON.parse(await redis.get(roomID + " round"))
+            if(roundData !== null && !roundData.word) {
+                socket.broadcast.to(roomID).emit("auto-selected", word.length)
+                await redis.set(roomID + " round", JSON.stringify({
+                    ...roundData,
+                    word,
+                    startTime: new Date(),
+                    turn: socketID
+                }))
+            }
+        }, 900)
     }
 }
 

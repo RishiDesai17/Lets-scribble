@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import useStore from '../zustand/store';
 import useGameStore from '../zustand/game';
+import './styles/Word.css';
 
 const Word: React.FC = () => {
     const getSocket = useStore(state => state.getSocket)
@@ -41,7 +42,7 @@ const Word: React.FC = () => {
 
     return (
         <div>
-            <p style={{ fontSize: 30, margin: 0 }}>{selectedWord}</p>
+            <p id="word">{selectedWord}</p>
         </div>
     )
 }

@@ -1,0 +1,10 @@
+#word {
+    font-size: 30px;
+    margin: 0;
+}
+
+@media screen and (max-width: 500px) {
+    #word {
+        font-size: 25px;
+    }
+}

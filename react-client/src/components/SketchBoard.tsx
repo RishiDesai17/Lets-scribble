@@ -84,15 +84,32 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         clearChats: state.clearChats
     }), []))
 
-    const { myTurn, setMyTurn, getMyTurn, roundLength, setSelectedWord, startCountdown, resetCountdown, resetGameStore } = useGameStore(useCallback(state => ({
-        myTurn: state.myTurn,
-        setMyTurn: state.setMyTurn,
-        getMyTurn: state.getMyTurn,
-        roundLength: state.roundLength,
-        setSelectedWord: state.setSelectedWord,
-        startCountdown: state.startCountdown,
-        resetCountdown: state.resetCountdown,
-        resetGameStore: state.resetGameStore
+    const {
+        myTurn,
+        roundLength,
+
+        setMyTurn,
+        setSelectedWord,
+        
+        getMyTurn,
+        getSelectedWord,
+
+        startCountdown,
+        resetCountdown,
+        resetGameStore
+    } = useGameStore(useCallback(state => ({
+            myTurn: state.myTurn,
+            roundLength: state.roundLength,
+            
+            setMyTurn: state.setMyTurn,
+            setSelectedWord: state.setSelectedWord,
+            
+            getMyTurn: state.getMyTurn,
+            getSelectedWord: state.getSelectedWord,
+            
+            startCountdown: state.startCountdown,
+            resetCountdown: state.resetCountdown,
+            resetGameStore: state.resetGameStore
     }), []))
 
     useEffect(() => {
@@ -118,6 +135,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
             resetCountdown()
+            setSelectedWord("")
             setOpen(true)
             setMyTurn(true)
             clearCanvas()
@@ -127,6 +145,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             overlayContent.current = `${name} is choosing a word`
             setOverlay(true)
             setMyTurn(false)
+            setSelectedWord("")
             clearCanvas()
             /*  Below operations need to be performed if all players have correctly given the answer
                 and the next turn is given to the next player, so we need to clear the timeout and countdown.
@@ -143,19 +162,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             startCountdown()
         })
         
-        socket.on("auto-selected", () => {
-            const turn = getMyTurn()
-            if(turn){
-                setOpen(false)
-                timerForNextTurn(socket)
-                setSelectedWord(wordChoices.current[0])
-            }
-            else{
-                toastInfo('start guessing')
-            }
-            setOverlay(false)
-            startCountdown()
-        })
+        socket.on("auto-selected", () => autoSelectionHandler(socket))
 
         socket.on("new member", (member: Member) => {
             socket.emit("send full canvas", {
@@ -318,13 +325,34 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }
 
     const chooseWord = (choice: string) => {
-        const socket = getSocket()
-        socket.emit("chosen word", choice)
-        timerForNextTurn(socket)
         setOpen(false)
-        startCountdown()
+        const socket = getSocket()
+        // socket.off("auto-selected")
+        socket.emit("chosen word", choice)
         if(myTurn){
             setSelectedWord(choice)
+        }
+        timerForNextTurn(socket)
+        startCountdown()
+    }
+
+    const autoSelectionHandler = (socket: SocketIOClient.Socket) => {
+        const turn = getMyTurn()
+        if(turn) {
+            setTimeout(() => {
+                const selectedWord = getSelectedWord()
+                if(selectedWord === "") {
+                    timerForNextTurn(socket)
+                    setSelectedWord(wordChoices.current[0])
+                    startCountdown()
+                }
+            }, 900)
+            setOpen(false)
+        }
+        else{
+            toastInfo('start guessing')
+            startCountdown()
+            setOverlay(false)
         }
     }
 
@@ -332,6 +360,8 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         nextTurnTimeout.current = window.setTimeout(() => {
             setMyTurn(false)
             socket.emit("next turn")
+            // console.log(socket._callbacks)
+            // socket.on("auto-selected", () => autoSelectionHandler(socket))
         }, roundLength * 1000)
     }
 
