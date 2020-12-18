@@ -5,6 +5,7 @@ import GameSettings from '../components/GameSettings';
 import LobbyMembers from '../components/LobbyMembers';
 import ModalBody from '../components/ModalBody';
 import ShareLink from '../components/ShareLink';
+import { generateUnderscores } from '../components/Word';
 import { Modal, Backdrop, Fade, Grid } from '@material-ui/core';
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { useHistory, useParams } from 'react-router-dom';
@@ -123,12 +124,9 @@ const Lobby: React.FC = (props) => {
                     history.replace("/playground")
                     return
                 }
-                let word = ""
-                for(let i = 0; i < wordLength; i++){
-                    word += "_ "
-                }
                 startCountdown(startTime)
-                setSelectedWord(word)
+                const underscores = generateUnderscores(wordLength)
+                setSelectedWord(underscores)
                 history.replace("/playground")
             }
         })

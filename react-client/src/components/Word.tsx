@@ -22,22 +22,9 @@ const Word: React.FC = () => {
         
         // listeners for displaying appropriate blanks according to word length for users guessing
         socket.on("start guessing", (wordLength: number) => {
-            generateUnderscores(wordLength)
+            const underscores = generateUnderscores(wordLength)
+            setSelectedWord(underscores)
         })
-
-        socket.on("auto-selected", (wordLength: number) => {
-            if(!myTurn){
-                generateUnderscores(wordLength)
-            }
-        })
-    }
-
-    const generateUnderscores = (wordLength: number) => {
-        let word = ""
-        for(let i = 0; i < wordLength; i++) {
-            word += "_ "
-        }
-        setSelectedWord(word)
     }
 
     return (
@@ -45,6 +32,14 @@ const Word: React.FC = () => {
             <p id="word">{selectedWord}</p>
         </div>
     )
+}
+
+export const generateUnderscores = (wordLength: number) => {
+    let word = ""
+    for(let i = 0; i < wordLength; i++) {
+        word += "_ "
+    }
+    return word
 }
 
 export default Word

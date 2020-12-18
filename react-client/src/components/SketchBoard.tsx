@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useCallback, useState, memo } from 'react';
 import useStore from '../zustand/store';
 import useChatsStore from '../zustand/chats';
 import useGameStore from '../zustand/game';
-import ResultCard from '../components/ResultCard';
+import ChooseWord from './ChooseWord';
+import ResultCard from './ResultCard';
 import { makeStyles } from "@material-ui/core/styles";
 import { Modal, Backdrop, Fade, Collapse, Button } from "@material-ui/core";
 import { toastInfo } from './Toast';
@@ -65,6 +66,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const position = useRef<Coordinates>({ x: 0, y: 0 })
     const strokesBuffer = useRef<Array<Stroke>>([])
     const wordChoices = useRef<Array<string>>([])
+    const autoSelectionTimeout = useRef<number>()
     const nextTurnTimeout = useRef<number>()
     const overlayContent = useRef<string | Member[]>("")
 
@@ -134,12 +136,16 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
+            // setTimeout(() => {
+            //     manualSelectionHandler(1)
+            //     // setSelectedWord(wordChoices.current[1])
+            // }, 7499)
+            autoSelectionTimeout.current = window.setTimeout(autoSelectionHandler, 7500)
             resetCountdown()
             setSelectedWord("")
             setOpen(true)
             setMyTurn(true)
             clearCanvas()
-            socket.on("auto-selected", () => autoSelectionHandler(socket))
         })
         
         socket.on("someone choosing word", (name: string) => {
@@ -153,9 +159,8 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
                 Also for resetCountDown, another reason to execute it is 
                 just in case latency caused countdown delay of a few seconds
             */
-            clearInterval(nextTurnTimeout.current)
+            clearTimeout(nextTurnTimeout.current)
             resetCountdown()
-            socket.on("auto-selected", () => autoSelectionHandler(socket))
         })
         
         socket.on("start guessing", () => {
@@ -163,8 +168,6 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             setOverlay(false)
             startCountdown()
         })
-        
-        socket.on("auto-selected", () => autoSelectionHandler(socket))
 
         socket.on("new member", (member: Member) => {
             socket.emit("send full canvas", {
@@ -235,20 +238,17 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     }
 
     const onMouseDown = useCallback((e: MouseEvent | TouchEvent): void => {
-        console.log("mousedown")
         isDrawing.current = true
         handleEventType({ e, toDraw: false, setPosition: true })
     }, [])
 
     const onMouseMove = (e: MouseEvent | TouchEvent): void => {
         if(isDrawing.current){
-            console.log("mousemove true")
             handleEventType({ e, toDraw: true, setPosition: true })
         }
     }
 
     const onMouseUp = (e: MouseEvent | TouchEvent): void => {
-        console.log("mouseup")
         if(isDrawing.current){
             isDrawing.current = false
             handleEventType({ e, toDraw: true, setPosition: false })
@@ -267,14 +267,12 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
                 x: (e.pageX - canvasRef.current.offsetLeft) / canvasSize,
                 y: (e.pageY - canvasRef.current.offsetTop) / canvasSize
             }
-            console.log(coordinates, canvasRef.current.offsetTop, canvasRef.current.offsetLeft)
         }
         else{
             coordinates = {
                 x: (e.changedTouches[0].clientX - canvasRef.current.offsetLeft) / canvasSize,
                 y: (e.changedTouches[0].clientY - canvasRef.current.offsetTop) / canvasSize
             }
-            console.log(coordinates)
         }
         if(toDraw){
             const color = getColor()
@@ -329,34 +327,25 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const chooseWord = (choice: string) => {
         setOpen(false)
         const socket = getSocket()
-        socket.off("auto-selected")
         socket.emit("chosen word", choice)
-        if(myTurn){
+        const turn = getMyTurn()
+        if(turn){
             setSelectedWord(choice)
         }
         timerForNextTurn(socket)
         startCountdown()
     }
 
-    const autoSelectionHandler = (socket: SocketIOClient.Socket) => {
-        const turn = getMyTurn()
-        if(turn) {
-            setTimeout(() => {
-                const selectedWord = getSelectedWord()
-                if(selectedWord === "") {
-                    timerForNextTurn(socket)
-                    setSelectedWord(wordChoices.current[0])
-                    startCountdown()
-                }
-            }, 900)
-            setOpen(false)
+    const manualSelectionHandler = (index: number) => {
+        clearTimeout(autoSelectionTimeout.current)
+        chooseWord(wordChoices.current[index])
+    }
+
+    const autoSelectionHandler = () => {
+        const selectedWord = getSelectedWord()
+        if(selectedWord === "") {
+            chooseWord(wordChoices.current[0])
         }
-        else{
-            toastInfo('start guessing')
-            startCountdown()
-            setOverlay(false)
-        }
-        socket.off("auto-selected")
     }
 
     const timerForNextTurn = (socket: SocketIOClient.Socket) => {
@@ -423,10 +412,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             >
                 <Fade in={open}>
                     <div className={classes.paper}>
-                        <h2 id="chooseWordTitle">Choose a word!</h2>
-                        {wordChoices.current.map(word => (
-                            <Button variant="contained" color="primary" style={{ marginRight: 3, marginLeft: 3 }} onClick={() => chooseWord(word)}>{word}</Button>
-                        ))}
+                        <ChooseWord wordChoices={wordChoices.current} manualSelectionHandler={manualSelectionHandler} />
                     </div>
                 </Fade>
             </Modal>

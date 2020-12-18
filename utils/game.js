@@ -193,36 +193,6 @@ const turn = async({ io, socketID, roomID, prevWord }) => {
             color: 'black'
         })
     }
-    
-    setTimeout(() => {
-        autoSelect({ io, roomID, word: selectedWords[0], socketID })
-    }, 7500) // if players dosent choose word in 7.5 seconds, autoselect it for him
-}
-
-const autoSelect = async({ io, roomID, word, socketID }) => {
-    const roundData = JSON.parse(await redis.get(roomID + " round"))
-    /*  check just for safety to check whether word has already been chosen or not 
-        roundData !== null is to prevent execution if players quit before selecting word
-    */
-    if(roundData !== null && !roundData.word) {
-        const socket = io.sockets.connected[socketID]
-        socket.emit("auto-selected")
-        /*  Additional timeout to prevent clashes in case there is a concurrent event for both auto and
-            manual word selection. Manual must be given prefernce hence the small delay is applied here.
-        */
-        setTimeout(async() => {
-            const roundData = JSON.parse(await redis.get(roomID + " round"))
-            if(roundData !== null && !roundData.word) {
-                socket.broadcast.to(roomID).emit("auto-selected", word.length)
-                await redis.set(roomID + " round", JSON.stringify({
-                    ...roundData,
-                    word,
-                    startTime: new Date(),
-                    turn: socketID
-                }))
-            }
-        }, 900)
-    }
 }
 
 exports.nextTurn = async({ io, socket }) => {
