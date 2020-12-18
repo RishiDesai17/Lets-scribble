@@ -18,10 +18,6 @@ if(process.env.NODE_ENV === "prod") {
     });
 }
 
-app.get("/hi", (req, res) => {
-    return res.send("hey")
-})
-
 const main = async() => {
     const server = await webSocketsInit(app)
     return server
