@@ -136,10 +136,6 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
         
         socket.on("turn", (words: string[]) => {
             wordChoices.current = words
-            // setTimeout(() => {
-            //     manualSelectionHandler(1)
-            //     // setSelectedWord(wordChoices.current[1])
-            // }, 7499)
             autoSelectionTimeout.current = window.setTimeout(autoSelectionHandler, 7500)
             resetCountdown()
             setSelectedWord("")

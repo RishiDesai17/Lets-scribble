@@ -1,9 +1,12 @@
 const express = require("express")
 const app = express()
 const webSocketsInit = require('./infra/WebSockets')
+const enforce = require('express-sslify');
 require('dotenv').config({path: __dirname + '/.env'})
 
 app.use(express.json())
+
+app.use(enforce.HTTPS({ trustProtoHeader: true }));
 
 const port = process.env.PORT || 3001
 
