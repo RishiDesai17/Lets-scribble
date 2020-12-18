@@ -6,17 +6,21 @@ require('dotenv').config({path: __dirname + '/.env'})
 
 app.use(express.json())
 
-app.use(enforce.HTTPS({ trustProtoHeader: true }));
-
 const port = process.env.PORT || 3001
 
-if(process.env.NODE_ENV === "prod"){
+if(process.env.NODE_ENV === "prod") {
+    app.use(enforce.HTTPS({ trustProtoHeader: true }));
+
     app.use(express.static("react-client/build"));
 
     app.get("*", (req, res) => {
         res.sendFile(__dirname + "/react-client/build/index.html");
     });
 }
+
+app.get("/hi", (req, res) => {
+    return res.send("hey")
+})
 
 const main = async() => {
     const server = await webSocketsInit(app)

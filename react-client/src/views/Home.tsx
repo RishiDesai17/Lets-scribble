@@ -1,9 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import Avatars from '../components/Avatars';
 import useStore from '../zustand/store';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
-import { Card, CardContent, TextField, Button, Grid } from '@material-ui/core';
+import { Card, CardContent, TextField, Button, Grid, CircularProgress } from '@material-ui/core';
 import { toastError } from '../components/Toast';
 import "./styles/Home.css";
 
@@ -20,12 +20,15 @@ const Home: React.FC = (props) => {
     }), []))
 
     const room = useRef<string>("")
+    const [buttonDisabled, setButtonDisabled] = useState< -1 | 0 | 1 >(-1) // 0 -> create room, 1 -> join room, -1 -> none
     const history = useHistory();
 
     const createRoom = () => {
+        setButtonDisabled(0)
         const name = getName()
         const avatar = getAvatar()
         if(!nameValidation(name)){
+            setButtonDisabled(-1)
             return
         }
         const socket = io("/")
@@ -42,13 +45,16 @@ const Home: React.FC = (props) => {
                 score: 0
             }])
             history.replace(`/lobby/${roomID}`)
+            setButtonDisabled(-1)
         })
         socket.emit("create room", { host_name: name, avatar: avatar + 1 })
     }
 
     const join = () => {
+        setButtonDisabled(0)
         const name = getName()
         if(!nameValidation(name)){
+            setButtonDisabled(-1)
             return
         }
         let { protocol, hostname, port } = window.location
@@ -58,10 +64,12 @@ const Home: React.FC = (props) => {
         const urlRegex = new RegExp(`^${protocol}\/\/${hostname}\/lobby\/([a-z0-9\-])\/?`)
         if(!urlRegex.test(room.current)){
             toastError("Enter valid room URL")
+            setButtonDisabled(-1)
             return
         }
         const roomID = room.current.split("/")[4]
         history.replace(`/lobby/${roomID}`)
+        setButtonDisabled(-1)
     }
 
     const nameValidation = (name: string) => {
@@ -90,8 +98,12 @@ const Home: React.FC = (props) => {
                             <div id="buttons-container">
                                 <Grid container>
                                     <Grid item md={5} sm={12} xs={12}>
-                                        <Button id="create-room-button" variant="contained" color="primary" onClick={createRoom}>
-                                            Create Private Room
+                                        <Button id="create-room-button" variant="contained" color="primary" disabled={buttonDisabled !== -1} onClick={createRoom}>
+                                            {buttonDisabled === 0 ? 
+                                                <CircularProgress size={25} /> 
+                                            : 
+                                                "Create Private Room"
+                                            }
                                         </Button>
                                     </Grid>
                                     <Grid item md={2} sm={12} xs={12} id="or">OR</Grid>
@@ -112,8 +124,12 @@ const Home: React.FC = (props) => {
                                                     room.current = e.target.value
                                                 }} 
                                             />
-                                            <Button variant="contained" onClick={join}>
-                                                Join
+                                            <Button variant="contained" disabled={buttonDisabled !== -1} onClick={join}>
+                                                {buttonDisabled === 1 ? 
+                                                    <CircularProgress size={25} /> 
+                                                : 
+                                                    "Join"
+                                                }
                                             </Button>    
                                         </div>
                                     </Grid>
