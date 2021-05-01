@@ -73,6 +73,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const [canvasSize, setCanvasSize] = useState<number>(500);
     const [overlay, setOverlay] = useState<boolean>(false);
     const [open, setOpen] = useState<boolean>(false);
+    const [manualSelectEnabled, setManualSelectEnabled] = useState<boolean>(true);
     
     const classes = useStyles();
 
@@ -139,6 +140,7 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             autoSelectionTimeout.current = window.setTimeout(autoSelectionHandler, 10000)
             resetCountdown()
             setSelectedWord("")
+            setManualSelectEnabled(true)
             setOpen(true)
             setMyTurn(true)
             clearCanvas()
@@ -340,7 +342,10 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
     const autoSelectionHandler = () => {
         const selectedWord = getSelectedWord()
         if(selectedWord === "") {
-            chooseWord(wordChoices.current[0])
+            setManualSelectEnabled(false);
+            setTimeout(() => {
+                chooseWord(wordChoices.current[0])
+            }, 1000)
         }
     }
 
@@ -408,7 +413,11 @@ const Sketchboard: React.FC<Props> = ({ getColor }) => {
             >
                 <Fade in={open}>
                     <div className={classes.paper}>
-                        <ChooseWord wordChoices={wordChoices.current} manualSelectionHandler={manualSelectionHandler} />
+                        <ChooseWord
+                            wordChoices={wordChoices.current}
+                            manualSelectEnabled={manualSelectEnabled}
+                            manualSelectionHandler={manualSelectionHandler}
+                        />
                     </div>
                 </Fade>
             </Modal>

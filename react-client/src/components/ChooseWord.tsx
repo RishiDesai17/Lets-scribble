@@ -4,10 +4,11 @@ import './styles/ChooseWord.css';
 
 type Props = {
     wordChoices: string[]
+    manualSelectEnabled: boolean
     manualSelectionHandler: (index: number) => void
 }
 
-const ChooseWord: React.FC<Props> = ({ wordChoices, manualSelectionHandler }) => {
+const ChooseWord: React.FC<Props> = ({ wordChoices, manualSelectEnabled, manualSelectionHandler }) => {
     const [disabled, setDisabled] = useState<boolean>(false)
 
     const selectWord = (index: number) => {
@@ -24,7 +25,7 @@ const ChooseWord: React.FC<Props> = ({ wordChoices, manualSelectionHandler }) =>
                     variant="contained"
                     color="primary"
                     style={{ margin: '0 3px' }}
-                    disabled={disabled}
+                    disabled={disabled || !manualSelectEnabled}
                     onClick={() => selectWord(index)}
                 >
                     {word}
